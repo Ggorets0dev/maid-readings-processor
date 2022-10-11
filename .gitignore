@@ -1,3 +1,2 @@
-test_readings.txt
-test_readings_backup.txt
-test_readings_reduced.txt
+/examples
+**/__pycache__/
