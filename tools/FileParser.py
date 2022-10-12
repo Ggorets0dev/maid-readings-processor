@@ -13,7 +13,7 @@ class FileParser:
     def reduce_readings(file_path : str) -> str:
         '''Optimizing the file with readings, deleting unnecessary lines'''
         
-        REDUCED_FILE_NAME = os.path.splitext(file_path)[0] + "_reduced.txt";
+        REDUCED_FILE_NAME = os.path.splitext(file_path)[0] + "_reduced.txt"
         last_header = ""
 
         if (not(os.path.isfile(file_path))):
@@ -51,10 +51,10 @@ class FileParser:
         reduced_path = FileParser.reduce_readings(file_path)
 
         if reduced_path is None:
-            logger.error(f"File {file_path} not found, no further parsing possible")
+            logger.error("Failed to complete the operation, because previous operations ended with errors")
             return None
 
-        dates_readings = {}
+        headers_readings = {}
         readings = []
         last_header = None
 
@@ -64,7 +64,7 @@ class FileParser:
 
                 if not line:
                     if len(readings) != 0:
-                        dates_readings[last_header] = readings
+                        headers_readings[last_header] = readings
                     break
 
                 elif Reading.is_reading(line):
@@ -72,12 +72,9 @@ class FileParser:
 
                 elif Header.is_header(line):
                     if (last_header is not None):
-                        dates_readings[last_header] = readings
+                        headers_readings[last_header] = readings.copy()
                         readings.clear()
                     last_header = Header(line)
         
         logger.info(f"File {file_path} was processed, the headers and readings were saved in memory")
-        return dates_readings
-
-
-
+        return headers_readings
