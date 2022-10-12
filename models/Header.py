@@ -3,6 +3,8 @@ from typing import List
 class Header:
     '''Header that is read from the file'''
 
+    display_cnt = 1
+
     def __init__(self, header : str) -> None:
         header_parts = header.split(' ')
         self.date = header_parts[1]
@@ -10,18 +12,26 @@ class Header:
         self.wheel_circ = int(header_parts[5])
         self.save_delay = float(header_parts[7])
 
-    def display(self, raw : bool) -> None:
+    def display(self, raw : bool, to_enumerate : bool) -> None:
         '''Displaying Header in different modes'''
+        header = ""
+
+        if to_enumerate:
+            header += f"{Header.display_cnt}) "
+        
         if not raw:
-            print(f"date: {self.date} | config: [spokes count: {self.spokes_cnt}, wheel circumfulence: {self.wheel_circ}, save delay: {self.save_delay}]")
+            header += f"date: {self.date} | config: [spokes count: {self.spokes_cnt}, wheel circumfulence: {self.wheel_circ}, save delay: {self.save_delay}]"
         else:
-            print(f"{self.date} ({self.spokes_cnt} {self.wheel_circ} {self.save_delay})")
+            header += f"{self.date} ({self.spokes_cnt} {self.wheel_circ} {self.save_delay})"
+       
+        Header.display_cnt += 1
+        print(header)
 
     @staticmethod
-    def display_list(headers : List, raw : bool) -> None:
+    def display_list(headers : List, raw : bool, to_enumerate : bool) -> None:
         '''Display amount of Headers'''
         for header in headers:
-            header.display(raw=raw)
+            header.display(raw=raw, to_enumerate=to_enumerate)
 
     @staticmethod
     def is_header(header : str) -> bool:
