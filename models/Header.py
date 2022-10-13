@@ -1,4 +1,6 @@
 from typing import List
+from datetime import date
+from dateutil.parser import parse
 
 class Header:
     '''Header that is read from the file'''
@@ -7,7 +9,9 @@ class Header:
 
     def __init__(self, header : str) -> None:
         header_parts = header.split(' ')
-        self.date = header_parts[1]
+        date_parts = header_parts[1].split('.')
+        
+        self.date = date(int(date_parts[2]), int(date_parts[1]), int(date_parts[0]))
         self.spokes_cnt = int(header_parts[3])
         self.wheel_circ = int(header_parts[5])
         self.save_delay = float(header_parts[7])
@@ -34,10 +38,19 @@ class Header:
             header.display(raw=raw, to_enumerate=to_enumerate)
 
     @staticmethod
+    def is_date(date_str : str, fuzzy=False) -> bool:
+        '''Return whether the string can be interpreted as a date'''
+        try:
+            parse(date_str, fuzzy=fuzzy)
+            return True
+        except ValueError:
+            return False
+
+    @staticmethod
     def is_header(header : str) -> bool:
         '''Trying to determine if the string is Header'''
         header_parts = header.split(' ')
         try:
-            return header_parts[3].isdigit() and header_parts[5].isdigit() and (isinstance(float(header_parts[7]), float)) and len(header_parts) == 9
+            return Header.is_date(header_parts[1]) and header_parts[3].isdigit() and header_parts[5].isdigit() and (isinstance(float(header_parts[7]), float)) and len(header_parts) == 9
         except IndexError:
             return False
