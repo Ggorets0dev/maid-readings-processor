@@ -8,8 +8,9 @@ from loguru import logger
 from tools.CommandParser import CommandParser
 from tools.subparsers.ShowSubParser import ShowSubParser
 from tools.subparsers.CheckSubParser import CheckSubParser
+from tools.subparsers.ReduceSubParser import ReduceSubParser
 
-__VERSION__ = "0.5.0"
+__VERSION__ = "0.6.0"
 
 
 if __name__ == "__main__":
@@ -27,6 +28,8 @@ if __name__ == "__main__":
     elif namespace.command == "check":
         CheckSubParser.run_check(namespace)
 
+    elif namespace.command == "reduce":
+        ReduceSubParser.run_reduce(namespace)
 
 else:
     logger.error("Marp was called as a module from another file, such use is not available")

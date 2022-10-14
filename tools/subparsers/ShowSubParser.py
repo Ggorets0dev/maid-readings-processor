@@ -1,4 +1,4 @@
-#pylint: disable=C0303 E0401
+#pylint: disable=C0301 C0303 E0401
 
 from argparse import _SubParsersAction, Namespace
 from loguru import logger
@@ -20,6 +20,7 @@ class ShowSubParser:
         show_subparser.add_argument('-e', '--enumerate', action='store_true', help='Number displayed values')
         show_subparser.add_argument('-f', '--first', nargs=1, type=int, help='Display first FIRST values')
         show_subparser.add_argument('-l', '--last', nargs=1, type=int, help='Display last LAST values')
+        show_subparser.add_argument('-o', '--original', action='store_true', help='No line check and no file shortening (enabled by default)')
         return subparsers
 
     @staticmethod
@@ -30,13 +31,13 @@ class ShowSubParser:
         Reading.display_cnt = 1
 
         if namespace.header or namespace.reading:
-            headers_readings = FileParser.parse_readings(file_path)
+            headers_readings = FileParser.parse_readings(file_path=file_path, check=not(namespace.original))
 
             if headers_readings is None:
                 logger.error("Failed to display values because past operations have not been completed")
                 return
 
-            if namespace.first or namespace.last:
+            elif namespace.first or namespace.last:
                 if namespace.first and namespace.header:
                     Header.display_list(headers=list(headers_readings.keys())[:namespace.first[0]], raw=namespace.raw, to_enumerate=namespace.enumerate)
 
@@ -105,3 +106,4 @@ class ShowSubParser:
 
         else:
             logger.error("Display target not selected (--header or --reading)")
+            

@@ -29,3 +29,4 @@ class CheckSubParser:
             
         else:
             logger.error("Check mode not selected (--pattern or --time)")
+            

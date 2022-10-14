@@ -75,9 +75,8 @@ class FileParser:
                     bad_lines_inxs.append(str(line_inx))
 
     @staticmethod
-    def reduce_readings(file_path : str) -> str:
+    def reduce_readings(file_path : str, check=True) -> str:
         '''Optimizing the file with readings, deleting unnecessary lines'''
-
         REDUCED_FILE_NAME = os.path.splitext(file_path)[0] + "_reduced.txt"
         last_header = ""
 
@@ -85,7 +84,7 @@ class FileParser:
             logger.error(f"File {file_path} not found, no further reduction possible")
             return None
 
-        elif not FileParser.validate_readings_by_pattern(file_path) or not FileParser.validate_readings_by_time(file_path):
+        elif check and (not FileParser.validate_readings_by_pattern(file_path) or not FileParser.validate_readings_by_time(file_path)):
             logger.error("Specified file does not match the pattern or time, no futher reduction is possible")
             return None
 
@@ -104,32 +103,36 @@ class FileParser:
                 elif line  == '\n' or line  == '':
                     continue
 
-                elif line[1] == "H":
+                elif Header.is_header(line):
                     if last_header == "" or last_header != line:
                         file_w.write(line)
                     last_header = line
                 
-                else:
+                elif Reading.is_reading(line):
                     file_w.write(line)
+
+                else:
+                    logger.error("An unknown format string was detected")
+                    return None
 
         return result_path
 
 
     @staticmethod
-    def parse_readings(file_path : str) -> Dict[Header, List[Reading]]:
+    def parse_readings(file_path : str, check=True) -> Dict[Header, List[Reading]]:
         '''Reading values from a file and transferring them to a list'''
-        
-        reduced_path = FileParser.reduce_readings(file_path)
-
-        if reduced_path is None:
-            logger.error("Failed to retrieve values from file because previous operations were not successful")
-            return None
-
         headers_readings = {}
         readings = []
         last_header = None
 
-        with open(reduced_path, 'r', encoding='UTF-8') as file_r:
+        if check:
+            file_path = FileParser.reduce_readings(file_path, check=check)
+            
+            if file_path is None:
+                logger.error("Failed to retrieve values from file because previous operations were not successful")
+                return None
+
+        with open(file_path, 'r', encoding='UTF-8') as file_r:
             while True:
                 line = file_r.readline()
 
@@ -149,5 +152,9 @@ class FileParser:
                         headers_readings[last_header] = readings.copy()
                         readings.clear()
                     last_header = Header(line)
+                
+                else:
+                    logger.error("An unknown format string was detected")
+                    return None
         
         return headers_readings

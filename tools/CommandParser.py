@@ -3,6 +3,7 @@
 from argparse import ArgumentParser
 from tools.subparsers.ShowSubParser import ShowSubParser
 from tools.subparsers.CheckSubParser import CheckSubParser
+from tools.subparsers.ReduceSubParser import ReduceSubParser
 
 class CommandParser:
     '''Processing command line arguments'''
@@ -20,6 +21,6 @@ class CommandParser:
         subparsers = parser.add_subparsers(dest='command', description='Commands available for use: ')
         subparsers = ShowSubParser.add_subparser(subparsers)
         subparsers = CheckSubParser.add_subparser(subparsers)
+        subparsers = ReduceSubParser.add_subparser(subparsers)
 
         return parser
-
