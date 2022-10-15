@@ -4,12 +4,13 @@ class Reading:
     '''Reading that is read from the file'''
 
     display_cnt = 1
+    PATTERN = "{R} int[millis_passed] | int[impulse_count] | int[analog_voltage]"
 
     def __init__(self, reading : str) -> None:
         reading_parts = reading.split(' ')
         self.millis_passed = int(reading_parts[1])
-        self.speed = float(reading_parts[3])
-        self.voltage = float(reading_parts[4])
+        self.impulse_cnt = int(reading_parts[3])
+        self.analog_voltage = int(reading_parts[5].replace('\n', ''))
    
     def display(self, raw : bool, to_enumerate : bool) -> None:
         '''Displaying Reading in different modes'''
@@ -19,9 +20,9 @@ class Reading:
             reading += f"{Reading.display_cnt}) "
         
         if not raw:
-            reading += f"millis_passed: {self.millis_passed} | speed: {self.speed} | voltage: {self.voltage}"
+            reading += f"millis_passed: {self.millis_passed}, impulse_cnt: {self.impulse_cnt}, analog_voltage: {self.analog_voltage}"
         else:
-            reading += f"{self.millis_passed} | {self.speed} | {self.voltage}"
+            reading += f"{self.millis_passed} | {self.impulse_cnt} | {self.analog_voltage}"
 
         Reading.display_cnt += 1
         print(reading)
@@ -37,6 +38,6 @@ class Reading:
         '''Trying to determine if the string is Reading'''
         reading_parts = reading.split(' ')
         try:
-            return reading_parts[1].isdigit() and (isinstance(float(reading_parts[3]), float)) and (isinstance(float(reading_parts[4]), float)) and len(reading_parts) == 5
+            return len(reading_parts) == len(Reading.PATTERN.split(' ')) and reading_parts[1].isdigit() and reading_parts[3].isdigit() and reading_parts[5].replace('\n', '').isdigit()
         except IndexError:
             return False

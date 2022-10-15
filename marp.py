@@ -9,8 +9,10 @@ from tools.CommandParser import CommandParser
 from tools.subparsers.ShowSubParser import ShowSubParser
 from tools.subparsers.CheckSubParser import CheckSubParser
 from tools.subparsers.ReduceSubParser import ReduceSubParser
+from tools.subparsers.CalcSubParser import CalcSubParser
+from tools.subparsers.TemplatesSubParser import TemplatesSubParser
 
-__VERSION__ = "0.6.0"
+__VERSION__ = "0.7.0"
 
 
 if __name__ == "__main__":
@@ -30,6 +32,12 @@ if __name__ == "__main__":
 
     elif namespace.command == "reduce":
         ReduceSubParser.run_reduce(namespace)
+
+    elif namespace.command == "calc":
+        CalcSubParser.run_calc(namespace)
+
+    elif namespace.command == "templates":
+        TemplatesSubParser.run_templates(namespace)
 
 else:
     logger.error("Marp was called as a module from another file, such use is not available")

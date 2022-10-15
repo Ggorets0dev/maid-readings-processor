@@ -10,7 +10,18 @@ class FileParser:
     '''Parsing class of the file with module readings'''
 
     @staticmethod
-    def validate_readings_by_time(file_path : str) -> bool:
+    def count_lines(file_path : str) -> int:
+        '''Count lines in file'''
+        if os.path.isfile(file_path):
+            with open(file_path, 'r', encoding='UTF-8') as f:
+                return sum(1 for line in f)
+        else:
+            logger.error(f"File {file_path} not found, no further line counting possible")
+            return -1
+
+
+    @staticmethod
+    def validate_readings_by_time(file_path : str, log_success=True) -> bool:
         '''Check whether each next date/time is later than the previous ones'''
         bad_lines_inxs = []
         line_inx = 0
@@ -27,7 +38,8 @@ class FileParser:
                 line_inx += 1
 
                 if not line and len(bad_lines_inxs) == 0:
-                    logger.success(f"File {file_path} was successfully checked, all time and date values increase over time")
+                    if log_success:
+                        logger.success(f"File {file_path} was successfully checked, all time and date values increase over time")
                     return True
 
                 elif not line and len(bad_lines_inxs) != 0:
@@ -46,7 +58,7 @@ class FileParser:
                     last_reading = Reading(line)
 
     @staticmethod
-    def validate_readings_by_pattern(file_path : str) -> bool:
+    def validate_readings_by_pattern(file_path : str, log_success=True) -> bool:
         '''Check if all lines of the file correspond to the Header or Reading patterns'''
         bad_lines_inxs = []
         line_inx = 0
@@ -61,7 +73,8 @@ class FileParser:
                 line_inx += 1
                 
                 if not line and len(bad_lines_inxs) == 0:
-                    logger.success(f"File {file_path} was successfully checked, all lines match either header or reading pattern")
+                    if log_success:
+                        logger.success(f"File {file_path} was successfully checked, all lines match either header or reading pattern")
                     return True
 
                 elif not line and len(bad_lines_inxs) != 0:
@@ -84,7 +97,7 @@ class FileParser:
             logger.error(f"File {file_path} not found, no further reduction possible")
             return None
 
-        elif check and (not FileParser.validate_readings_by_pattern(file_path) or not FileParser.validate_readings_by_time(file_path)):
+        elif check and (not FileParser.validate_readings_by_pattern(file_path=file_path, log_success=False) or not FileParser.validate_readings_by_time(file_path=file_path, log_success=False)):
             logger.error("Specified file does not match the pattern or time, no futher reduction is possible")
             return None
 
@@ -111,21 +124,17 @@ class FileParser:
                 elif Reading.is_reading(line):
                     file_w.write(line)
 
-                else:
-                    logger.error("An unknown format string was detected")
-                    return None
-
         return result_path
 
 
     @staticmethod
-    def parse_readings(file_path : str, check=True) -> Dict[Header, List[Reading]]:
+    def parse_readings(file_path : str, check=True, fix=False) -> Dict[Header, List[Reading]]:
         '''Reading values from a file and transferring them to a list'''
         headers_readings = {}
         readings = []
         last_header = None
 
-        if check:
+        if check and not(fix):
             file_path = FileParser.reduce_readings(file_path, check=check)
             
             if file_path is None:
@@ -145,7 +154,11 @@ class FileParser:
                     continue
 
                 elif Reading.is_reading(line):
-                    readings.append(Reading(line))
+                    if last_header is None:
+                        logger.error("Reading encountered before Header, failed to bind")
+                        return None
+                    else:
+                        readings.append(Reading(line))
 
                 elif Header.is_header(line):
                     if (last_header is not None):
@@ -153,7 +166,7 @@ class FileParser:
                         readings.clear()
                     last_header = Header(line)
                 
-                else:
+                elif not fix:
                     logger.error("An unknown format string was detected")
                     return None
         

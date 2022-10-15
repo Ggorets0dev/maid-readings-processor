@@ -1,10 +1,12 @@
 #pylint: disable=C0301 C0303 E0401
 
-from argparse import _SubParsersAction, Namespace
+from datetime import date
+from argparse import _SubParsersAction, Namespace, FileType
 from loguru import logger
 from tools.FileParser import FileParser
 from models.Header import Header
 from models.Reading import Reading
+from models.CountedReading import CountedReading
 
 class ShowSubParser:
     '''Output files or other data'''
@@ -13,31 +15,51 @@ class ShowSubParser:
     def add_subparser(subparsers : _SubParsersAction) -> _SubParsersAction:
         '''Creating a subparser'''
         show_subparser = subparsers.add_parser('show', description='Displaying values on the screen without calculating any information')
-        show_subparser.add_argument('-i', '--input', nargs=1, required=True, help='Path to the file with readings')
+        show_subparser.add_argument('-i', '--input', nargs=1, type=FileType(encoding='UTF-8'), required=True, help='Path to the file with readings')
+        
+        # * One of this targets must be specified
         show_subparser.add_argument('-he', '--header', action='store_true', help='Display target: headers')
         show_subparser.add_argument('-re', '--reading', action='store_true', help='Display target: readings')
+        show_subparser.add_argument('-da', '--date', nargs=1, help='Display target: values written in specified day (dd.mm.yyyy)')
+        show_subparser.add_argument('-li', '--line', action='store_true', help='Display number of lines in file')
+        
+        # * Modes of visualisation
+        show_subparser.add_argument('--fix', action='store_true', help='Try to fix the file automatically')
         show_subparser.add_argument('-r', '--raw', action='store_true', help='Display values without visual processing')
         show_subparser.add_argument('-e', '--enumerate', action='store_true', help='Number displayed values')
         show_subparser.add_argument('-f', '--first', nargs=1, type=int, help='Display first FIRST values')
         show_subparser.add_argument('-l', '--last', nargs=1, type=int, help='Display last LAST values')
         show_subparser.add_argument('-o', '--original', action='store_true', help='No line check and no file shortening (enabled by default)')
+        show_subparser.add_argument('-c', '--calculate', nargs=1, type=int, help='Verify the number of pulses in km/h and the analog value in volts with CALCULATE decimal places (disabled by default)')
         return subparsers
 
     @staticmethod
     def run_show(namespace : Namespace) -> None:
         '''Run if Show subparser was called'''
-        file_path = namespace.input[0]
-        Header.display_cnt = 1
-        Reading.display_cnt = 1
+        file_path = namespace.input[0].name
 
-        if namespace.header or namespace.reading:
-            headers_readings = FileParser.parse_readings(file_path=file_path, check=not(namespace.original))
+        # * Processing targets: --line
+        if namespace.line:
+            print(FileParser.count_lines(file_path=file_path))
+            return
 
-            if headers_readings is None:
-                logger.error("Failed to display values because past operations have not been completed")
+        # * Loading the readings file
+        headers_readings = FileParser.parse_readings(file_path=file_path, check=not(namespace.original), fix=namespace.fix)
+        if headers_readings is None:
+            logger.error("Failed to display values because past operations have not been completed")
+            return
+        elif namespace.calculate:
+            if namespace.calculate[0] <= 5:
+                for header in headers_readings:
+                    for i in range(len(headers_readings[header])):
+                        headers_readings[header][i] = CountedReading(headers_readings[header][i], header, namespace.calculate[0])
+            else:
+                logger.error("Maximum calculation accuracy --calculate: 5 decimal places")
                 return
 
-            elif namespace.first or namespace.last:
+        # * Processing targets: --header --reading --date
+        elif namespace.header or namespace.reading:
+            if namespace.first or namespace.last:
                 if namespace.first and namespace.header:
                     Header.display_list(headers=list(headers_readings.keys())[:namespace.first[0]], raw=namespace.raw, to_enumerate=namespace.enumerate)
 
@@ -74,7 +96,10 @@ class ShowSubParser:
 
                     while True:
                         if readings_passed_cnt + len(readings) >= namespace.last[0]:
-                            Reading.display_list(readings=readings[len(readings)-namespace.last[0]+readings_passed_cnt:], raw=namespace.raw, to_enumerate=namespace.enumerate)
+                            if isinstance(readings[0], Reading):
+                                Reading.display_list(readings=readings[len(readings)-namespace.last[0]+readings_passed_cnt:], raw=namespace.raw, to_enumerate=namespace.enumerate)
+                            elif isinstance(readings[0], CountedReading):
+                                CountedReading.display_list(readings=readings[len(readings)-namespace.last[0]+readings_passed_cnt:], raw=namespace.raw, to_enumerate=namespace.enumerate)
                             display_cnt += len(readings[len(readings)-namespace.last[0]+readings_passed_cnt:])
                             
                             while display_cnt < namespace.last[0]:
@@ -82,7 +107,6 @@ class ShowSubParser:
                                 readings = headers_readings[list(headers_readings.keys())[readings_inx]]
                                 Reading.display_list(readings=readings, raw=namespace.raw, to_enumerate=namespace.enumerate)
                                 display_cnt += len(readings)
-
                             break
                         
                         else:
@@ -102,8 +126,24 @@ class ShowSubParser:
                             reading.display(raw=namespace.raw, to_enumerate=namespace.enumerate)
 
             
+        elif namespace.date:
+            try:
+                date_parts = namespace.date[0].split('.')
+                date_requested = date(int(date_parts[2]), int(date_parts[1]), int(date_parts[0]))
+            except (IndexError, ValueError):
+                logger.error("Failed to parse the specified date (expected pattern: dd.mm.yyyy)")
+                return
 
+            for header in headers_readings:
+                if header.date == date_requested:
+                    if isinstance(headers_readings[header][0], Reading):
+                        Reading.display_list(headers_readings[header], raw=namespace.raw, to_enumerate=namespace.enumerate)
+                    elif isinstance(headers_readings[header][0], CountedReading):
+                        CountedReading.display_list(headers_readings[header], raw=namespace.raw, to_enumerate=namespace.enumerate)
+                    return
+            logger.info("No readings for that day were found")
+            return
 
         else:
-            logger.error("Display target not selected (--header or --reading)")
+            logger.error("Display target not selected (--header / --reading / --date)")
             
