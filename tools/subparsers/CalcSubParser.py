@@ -33,5 +33,6 @@ class CalcSubParser:
     def calculate_voltage(analog_voltage : int, config : Header, decimal_places : int) -> float:
         '''Conversion of analog value to real volts'''
         vout = analog_voltage * 5 / 1024
-        vin = vout / ((config.volt_divider_big * 1000) / (1000 * (config.volt_divider_small + config.volt_divider_big)))
+        vin = vout / (config.volt_divider_big / (config.volt_divider_small + config.volt_divider_big))
         return round(vin * (config.volt_divider_big / config.volt_divider_small), decimal_places)
+        

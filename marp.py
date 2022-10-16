@@ -12,7 +12,7 @@ from tools.subparsers.ReduceSubParser import ReduceSubParser
 from tools.subparsers.CalcSubParser import CalcSubParser
 from tools.subparsers.TemplatesSubParser import TemplatesSubParser
 
-__VERSION__ = "0.7.0"
+__VERSION__ = "0.7.1"
 
 
 if __name__ == "__main__":

@@ -58,7 +58,7 @@ class ShowSubParser:
                 return
 
         # * Processing targets: --header --reading --date
-        elif namespace.header or namespace.reading:
+        if namespace.header or namespace.reading:
             if namespace.first or namespace.last:
                 if namespace.first and namespace.header:
                     Header.display_list(headers=list(headers_readings.keys())[:namespace.first[0]], raw=namespace.raw, to_enumerate=namespace.enumerate)
