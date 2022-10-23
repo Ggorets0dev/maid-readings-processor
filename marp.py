@@ -11,8 +11,9 @@ from tools.subparsers.CheckSubParser import CheckSubParser
 from tools.subparsers.ReduceSubParser import ReduceSubParser
 from tools.subparsers.CalcSubParser import CalcSubParser
 from tools.subparsers.TemplatesSubParser import TemplatesSubParser
+from tools.subparsers.SplitSubParser import SplitSubParser
 
-__VERSION__ = "0.9.1"
+__VERSION__ = "0.10.0"
 
 
 if __name__ == "__main__":
@@ -38,6 +39,9 @@ if __name__ == "__main__":
 
     elif namespace.command == "templates":
         TemplatesSubParser.run_templates(namespace)
+
+    elif namespace.command == "split":
+        SplitSubParser.run_split(namespace)
 
 else:
     logger.error("Marp was called as a module from another file, such use is not available")

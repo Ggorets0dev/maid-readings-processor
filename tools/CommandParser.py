@@ -5,6 +5,7 @@ from tools.subparsers.ShowSubParser import ShowSubParser
 from tools.subparsers.CheckSubParser import CheckSubParser
 from tools.subparsers.ReduceSubParser import ReduceSubParser
 from tools.subparsers.CalcSubParser import CalcSubParser
+from tools.subparsers.SplitSubParser import SplitSubParser
 from tools.subparsers.TemplatesSubParser import TemplatesSubParser
 
 class CommandParser:
@@ -26,5 +27,6 @@ class CommandParser:
         subparsers = ReduceSubParser.add_subparser(subparsers)
         subparsers = CalcSubParser.add_subparser(subparsers)
         subparsers = TemplatesSubParser.add_subparser(subparsers)
+        subparsers = SplitSubParser.add_subparser(subparsers)
 
         return parser

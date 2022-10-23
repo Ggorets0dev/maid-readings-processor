@@ -1,4 +1,4 @@
-#pylint: disable=C0303  C0301 E0401
+#pylint: disable=C0303 C0301 E0401
 
 from argparse import _SubParsersAction, Namespace
 from loguru import logger

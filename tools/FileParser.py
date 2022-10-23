@@ -125,7 +125,6 @@ class FileParser:
 
         return result_path
 
-
     @staticmethod
     def parse_readings(file_path : str, check=True, fix=False) -> dict[Header, list[Reading]]:
         '''Reading values from a file and transferring them to a list'''
@@ -170,3 +169,33 @@ class FileParser:
                     return None
         
         return headers_readings
+
+    @staticmethod
+    def split_file(file_path : str, part_size : int) -> int:
+        '''Divide file to parts'''
+        new_file_path = os.path.splitext(file_path)[0] + "_part_"
+        line_inx = 0
+        part_inx = 1
+        line = ''
+
+
+        file_w = open(new_file_path + str(part_inx) + '.txt', 'w', encoding='UTF-8')
+        with open(file_path, encoding='UTF-8') as file_r:
+            while True:
+                line = file_r.readline()
+                if line_inx >= part_size and Header.is_header(line):
+                    file_w.close()
+                    part_inx += 1
+                    file_w = open(new_file_path + str(part_inx) + '.txt', 'w', encoding='UTF-8')
+                    file_w.write(line)
+                    line_inx = 1
+                
+                elif not line:
+                    break
+
+                else:
+                    file_w.write(line)
+                    line_inx += 1
+            file_w.close();
+        
+        return part_inx
