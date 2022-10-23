@@ -1,4 +1,4 @@
-#pylint: disable=C0303  C0301 E0401
+#pylint: disable=C0303 C0301 E0401 E0611
 
 from argparse import _SubParsersAction, Namespace, FileType
 from loguru import logger
@@ -21,6 +21,7 @@ class CheckSubParser:
         '''Run if Check subparser was called'''
         file_path = namespace.input[0].name
 
+        # SECTION - Processing targets: --pattern --time
         if namespace.pattern:
             FileParser.validate_readings_by_pattern(file_path)
 
@@ -29,4 +30,5 @@ class CheckSubParser:
             
         else:
             logger.error("Check mode not selected (--pattern or --time)")
+        # !SECTION
             

@@ -1,7 +1,6 @@
 #pylint: disable=E0401 C0301 C0303
 
 import os
-from typing import Dict, List
 from loguru import logger
 from models.Reading import Reading
 from models.Header import Header
@@ -13,8 +12,8 @@ class FileParser:
     def count_lines(file_path : str) -> int:
         '''Count lines in file'''
         if os.path.isfile(file_path):
-            with open(file_path, 'r', encoding='UTF-8') as f:
-                return sum(1 for line in f)
+            with open(file_path, 'r', encoding='UTF-8') as file_r:
+                return sum(1 for _ in file_r)
         else:
             logger.error(f"File {file_path} not found, no further line counting possible")
             return -1
@@ -128,7 +127,7 @@ class FileParser:
 
 
     @staticmethod
-    def parse_readings(file_path : str, check=True, fix=False) -> Dict[Header, List[Reading]]:
+    def parse_readings(file_path : str, check=True, fix=False) -> dict[Header, list[Reading]]:
         '''Reading values from a file and transferring them to a list'''
         headers_readings = {}
         readings = []

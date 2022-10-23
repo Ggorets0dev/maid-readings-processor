@@ -1,5 +1,3 @@
-from typing import List
-
 class Reading:
     '''Reading that is read from the file'''
 
@@ -28,7 +26,7 @@ class Reading:
         print(reading)
 
     @staticmethod
-    def display_list(readings : List, raw : bool, to_enumerate : bool) -> None:
+    def display_list(readings : list, raw : bool, to_enumerate : bool) -> None:
         '''Display amount of Readings'''
         for reading in readings:
             reading.display(raw=raw, to_enumerate=to_enumerate)

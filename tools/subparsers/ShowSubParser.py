@@ -1,9 +1,10 @@
-#pylint: disable=C0301 C0303 E0401
+#pylint: disable=C0301 C0303 E0401 E0611
 
 from datetime import date
 from argparse import _SubParsersAction, Namespace, FileType
 from loguru import logger
 from tools.FileParser import FileParser
+from tools.Calculator import Calculator
 from models.Header import Header
 from models.Reading import Reading
 from models.CountedReading import CountedReading
@@ -17,13 +18,13 @@ class ShowSubParser:
         show_subparser = subparsers.add_parser('show', description='Displaying values on the screen without calculating any information')
         show_subparser.add_argument('-i', '--input', nargs=1, type=FileType(encoding='UTF-8'), required=True, help='Path to the file with readings')
         
-        # * One of this targets must be specified
+        # NOTE - One of this targets must be specified
         show_subparser.add_argument('-he', '--header', action='store_true', help='Display target: headers')
         show_subparser.add_argument('-re', '--reading', action='store_true', help='Display target: readings')
         show_subparser.add_argument('-da', '--date', nargs=1, help='Display target: values written in specified day (dd.mm.yyyy)')
         show_subparser.add_argument('-li', '--line', action='store_true', help='Display number of lines in file')
         
-        # * Modes of visualisation
+        # NOTE - Modes of visualisation
         show_subparser.add_argument('--fix', action='store_true', help='Try to fix the file automatically')
         show_subparser.add_argument('-r', '--raw', action='store_true', help='Display values without visual processing')
         show_subparser.add_argument('-e', '--enumerate', action='store_true', help='Number displayed values')
@@ -38,26 +39,24 @@ class ShowSubParser:
         '''Run if Show subparser was called'''
         file_path = namespace.input[0].name
 
-        # * Processing targets: --line
+        # NOTE - Processing targets: --line
         if namespace.line:
             print(FileParser.count_lines(file_path=file_path))
             return
 
-        # * Loading the readings file
+        # NOTE -  Loading the readings file
         headers_readings = FileParser.parse_readings(file_path=file_path, check=not(namespace.original), fix=namespace.fix)
         if headers_readings is None:
             logger.error("Failed to display values because past operations have not been completed")
             return
         elif namespace.calculate:
             if namespace.calculate[0] <= 5:
-                for header in headers_readings:
-                    for i in range(len(headers_readings[header])):
-                        headers_readings[header][i] = CountedReading(headers_readings[header][i], header, namespace.calculate[0])
+                headers_readings = Calculator.convert_readings(headers_readings, namespace.calculate[0])
             else:
                 logger.error("Maximum calculation accuracy --calculate: 5 decimal places")
                 return
 
-        # * Processing targets: --header --reading --date
+        # SECTION - Processing targets: --header --reading --date
         if namespace.header or namespace.reading:
             if namespace.first or namespace.last:
                 if namespace.first and namespace.header:
@@ -146,4 +145,4 @@ class ShowSubParser:
 
         else:
             logger.error("Display target not selected (--header / --reading / --date)")
-            
+        # !SECTION

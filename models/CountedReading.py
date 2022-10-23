@@ -1,9 +1,7 @@
 #pylint: disable=C0301 E0401
 
-from typing import List
 from models.Reading import Reading
 from models.Header import Header
-from tools.subparsers.CalcSubParser import CalcSubParser
 
 class CountedReading:
     '''CountedReading that is read from the file'''
@@ -13,8 +11,8 @@ class CountedReading:
 
     def __init__(self, reading : Reading, header : Header, decimal_places : int) -> None:
         self.millis_passed = reading.millis_passed
-        self.speed_kmh = CalcSubParser.calculate_speed(impulse_cnt=reading.impulse_cnt, config=header, decimal_places=decimal_places)
-        self.voltage_v = CalcSubParser.calculate_voltage(analog_voltage=reading.analog_voltage, config=header, decimal_places=decimal_places)
+        self.speed_kmh = CountedReading.calculate_speed(impulse_cnt=reading.impulse_cnt, config=header, decimal_places=decimal_places)
+        self.voltage_v = CountedReading.calculate_voltage(analog_voltage=reading.analog_voltage, config=header, decimal_places=decimal_places)
    
     def display(self, raw : bool, to_enumerate : bool) -> None:
         '''Displaying CountedReading in different modes'''
@@ -32,7 +30,7 @@ class CountedReading:
         print(reading)
 
     @staticmethod
-    def display_list(readings : List, raw : bool, to_enumerate : bool) -> None:
+    def display_list(readings : list, raw : bool, to_enumerate : bool) -> None:
         '''Display amount of CountedReadings'''
         for reading in readings:
             reading.display(raw=raw, to_enumerate=to_enumerate)
@@ -45,3 +43,21 @@ class CountedReading:
             return len(reading_parts) == len(CountedReading.PATTERN.split(' ')) and reading_parts[1].isdigit() and (isinstance(float(reading_parts[3]), float)) and (isinstance(float(reading_parts[5]), float))
         except IndexError:
             return False
+
+    @staticmethod
+    def calculate_speed(impulse_cnt : int, config : Header, decimal_places : int) -> float:
+        '''Calculation of speed in km/h based on the number of pulses and configuration from the header'''
+        if impulse_cnt != 0:
+            speed = (impulse_cnt / config.spokes_cnt * config.wheel_circ / 1_000_000) * (60 * 60 / config.save_delay)
+            return round(speed, decimal_places)
+        else:
+            return 0.0
+
+    @staticmethod
+    def calculate_voltage(analog_voltage : int, config : Header, decimal_places : int) -> float:
+        '''Conversion of analog value to real volts'''
+        vin = analog_voltage * config.max_voltage / 1023
+        if vin >= 5:
+            return round(vin, decimal_places)
+        else:
+            return 0.0
