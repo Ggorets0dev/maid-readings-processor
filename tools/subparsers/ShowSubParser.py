@@ -50,10 +50,10 @@ class ShowSubParser:
             logger.error("Failed to display values because past operations have not been completed")
             return
         elif namespace.calculate:
-            if namespace.calculate[0] <= 5:
+            if namespace.calculate[0] <= 5 and namespace.calculate[0] > 0:
                 headers_readings = Calculator.convert_readings(headers_readings, namespace.calculate[0])
             else:
-                logger.error("Maximum calculation accuracy --calculate: 5 decimal places")
+                logger.error("Calculation accuracy --calculate: maximal: 5, minimal: 1 (decimal places)")
                 return
 
         # SECTION - Processing targets: --header --reading --date

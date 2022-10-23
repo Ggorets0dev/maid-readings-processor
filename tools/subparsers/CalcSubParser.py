@@ -34,11 +34,11 @@ class CalcSubParser:
         if not namespace.accuracy:
             decimal_places = 2
         
-        elif namespace.accuracy[0] <= 5:
+        elif namespace.accuracy[0] <= 5 and namespace.accuracy[0] > 0:
             decimal_places = namespace.accuracy[0]
 
         else:
-            logger.error("Maximum --accuracy: 5 decimal places")
+            logger.error("Calculation and displaying --accuracy: maximal: 5, minimal: 1 (decimal places)")
             return
 
         # SECTION - Processing targets: --voltage-interval
