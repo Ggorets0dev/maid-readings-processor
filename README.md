@@ -1,6 +1,9 @@
 # MaidReadingsProcessor (Marp)
-Console application for processing records written by [MaidModule](https://github.com/Ggorets0dev/maid-arduino-module) to portable ROM device.
+Console application made with Python 3 for processing records written by [MaidModule](https://github.com/Ggorets0dev/maid-arduino-module) to its portable ROM device.
 
+<p align='center'>
+    <img height=225 src="pics/Maid_Logo_icon.png"/>
+</p>
 
 ## Installation
 ---

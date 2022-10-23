@@ -184,11 +184,11 @@ class FileParser:
             while True:
                 line = file_r.readline()
                 if line_inx >= part_size and Header.is_header(line):
-                    file_w.close()
+                    line_inx = 1
                     part_inx += 1
+                    file_w.close()
                     file_w = open(new_file_path + str(part_inx) + '.txt', 'w', encoding='UTF-8')
                     file_w.write(line)
-                    line_inx = 1
                 
                 elif not line:
                     break
@@ -196,6 +196,6 @@ class FileParser:
                 else:
                     file_w.write(line)
                     line_inx += 1
-            file_w.close();
+            file_w.close()
         
         return part_inx
