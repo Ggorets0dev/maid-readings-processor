@@ -1,6 +1,6 @@
 #pylint: disable=C0303 E0401
 
-'''Controlling main module, called directly from the command line'''
+'''Main file, called directly from the command line'''
 
 import sys
 import pyfiglet
@@ -13,7 +13,7 @@ from tools.subparsers.CalcSubParser import CalcSubParser
 from tools.subparsers.TemplatesSubParser import TemplatesSubParser
 from tools.subparsers.SplitSubParser import SplitSubParser
 
-__VERSION__ = "0.10.0"
+__VERSION__ = "0.10.1"
 
 
 if __name__ == "__main__":
@@ -25,6 +25,7 @@ if __name__ == "__main__":
         print("Developer: Ggorets0dev <nikgorets4work@gmail.com>")
         print("GitHub: https://github.com/Ggorets0dev/maid-readings-processor")
 
+    #SECTION - Processing commands from subparsers
     elif namespace.command == "show":
         ShowSubParser.run_show(namespace)
     
@@ -42,6 +43,8 @@ if __name__ == "__main__":
 
     elif namespace.command == "split":
         SplitSubParser.run_split(namespace)
+    # !SECTION
 
 else:
     logger.error("Marp was called as a module from another file, such use is not available")
+    exit(1)

@@ -22,8 +22,8 @@ class ShowSubParser:
         show_subparser.add_argument('-he', '--header', action='store_true', help='Display target: headers')
         show_subparser.add_argument('-re', '--reading', action='store_true', help='Display target: readings')
         show_subparser.add_argument('-da', '--date', nargs=1, help='Display target: values written in specified day (dd.mm.yyyy)')
-        show_subparser.add_argument('-li', '--line', action='store_true', help='Display number of lines in file')
-        
+        show_subparser.add_argument('-lc', '--line-count', action='store_true', help='Display number of lines in file')
+
         # NOTE - Modes of visualisation
         show_subparser.add_argument('--fix', action='store_true', help='Try to fix the file automatically')
         show_subparser.add_argument('-r', '--raw', action='store_true', help='Display values without visual processing')
@@ -39,16 +39,17 @@ class ShowSubParser:
         '''Run if Show subparser was called'''
         file_path = namespace.input[0].name
 
-        # NOTE - Processing targets: --line
-        if namespace.line:
-            print(FileParser.count_lines(file_path=file_path))
+        # NOTE - Processing targets: --line-count
+        if namespace.line_count:
+            print(f"Lines in requested file: {FileParser.count_lines(file_path=file_path)}")
             return
 
-        # NOTE -  Loading the readings file
+        # NOTE - Loading the readings file
         headers_readings = FileParser.parse_readings(file_path=file_path, check=not(namespace.original), fix=namespace.fix)
         if headers_readings is None:
             logger.error("Failed to display values because past operations have not been completed")
             return
+        
         elif namespace.calculate:
             if namespace.calculate[0] <= 5 and namespace.calculate[0] > 0:
                 headers_readings = Calculator.convert_readings(headers_readings, namespace.calculate[0])
@@ -140,9 +141,10 @@ class ShowSubParser:
                     elif isinstance(headers_readings[header][0], CountedReading):
                         CountedReading.display_list(headers_readings[header], raw=namespace.raw, to_enumerate=namespace.enumerate)
                     return
-            logger.info("No readings for that day were found")
+            logger.info("No readings for requested date were found")
             return
 
         else:
             logger.error("Display target not selected (--header / --reading / --date)")
+            return
         # !SECTION

@@ -16,7 +16,7 @@ class FileParser:
                 return sum(1 for _ in file_r)
         else:
             logger.error(f"File {file_path} not found, no further line counting possible")
-            return -1
+            exit(1)
 
 
     @staticmethod
@@ -29,7 +29,7 @@ class FileParser:
 
         if not os.path.isfile(file_path):
             logger.error(f"File {file_path} not found, no further validation possible")
-            return False   
+            exit(1)   
 
         with open(file_path, 'r', encoding='UTF-8') as file_r:
             while True:
@@ -64,7 +64,7 @@ class FileParser:
         
         if not os.path.isfile(file_path):
             logger.error(f"File {file_path} not found, no further validation possible")
-            return False
+            exit(1)
         
         with open(file_path, 'r', encoding='UTF-8') as file_r:
             while True:
@@ -94,11 +94,11 @@ class FileParser:
 
         if not os.path.isfile(file_path):
             logger.error(f"File {file_path} not found, no further reduction possible")
-            return None
+            exit(1)
 
         elif check and (not FileParser.validate_readings_by_pattern(file_path=file_path, log_success=False) or not FileParser.validate_readings_by_time(file_path=file_path, log_success=False)):
             logger.error("Specified file does not match the pattern or time, no futher reduction is possible")
-            return None
+            exit(1)
 
         if len(os.path.dirname(file_path)) == 0:
             result_path = REDUCED_FILE_NAME
@@ -135,9 +135,9 @@ class FileParser:
         if check and not(fix):
             file_path = FileParser.reduce_readings(file_path, check=check)
             
-            if file_path is None:
-                logger.error("Failed to retrieve values from file because previous operations were not successful")
-                return None
+            # if file_path is None:
+            #     logger.error("Failed to retrieve values from file because previous operations were not successful")
+            #     return None
 
         with open(file_path, 'r', encoding='UTF-8') as file_r:
             while True:
@@ -154,7 +154,7 @@ class FileParser:
                 elif Reading.is_reading(line):
                     if last_header is None:
                         logger.error("Reading encountered before Header, failed to bind")
-                        return None
+                        exit(1)
                     else:
                         readings.append(Reading(line))
 
@@ -166,7 +166,7 @@ class FileParser:
                 
                 elif not fix:
                     logger.error("An unknown format string was detected")
-                    return None
+                    exit(1)
         
         return headers_readings
 

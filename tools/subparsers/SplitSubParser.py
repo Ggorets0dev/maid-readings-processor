@@ -1,4 +1,4 @@
-#pylint: disable=C0303 C0301 E0401
+#pylint: disable=C0303 C0301 E0401 E0611
 
 from argparse import _SubParsersAction, Namespace, FileType
 from loguru import logger
@@ -23,7 +23,7 @@ class SplitSubParser:
         '''Run if Split subparser was called'''
         lines_cnt = FileParser.count_lines(file_path=namespace.input[0].name)
 
-        # NOTE - Processing targets: --parts --lines
+        # SECTION - Processing targets: --parts --lines
         if namespace.parts:
             if namespace.parts[0] >= 2 and namespace.parts[0] <= 1000 and namespace.parts[0] < lines_cnt:
                 part_size = int(lines_cnt / namespace.parts[0])
@@ -50,3 +50,5 @@ class SplitSubParser:
                 return
         else:
             logger.error("Split mode not selected (--parts / --lines)")
+            return
+        # !SECTION

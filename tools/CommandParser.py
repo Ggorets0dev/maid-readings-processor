@@ -21,6 +21,7 @@ class CommandParser:
         )
         parser.add_argument('-v', '--version', action='store_true', help='Version of Marp')
 
+        # SECTION - Connecting subparsers to the main parser (commands)
         subparsers = parser.add_subparsers(dest='command', description='Commands available for use: ')
         subparsers = ShowSubParser.add_subparser(subparsers)
         subparsers = CheckSubParser.add_subparser(subparsers)
@@ -28,5 +29,6 @@ class CommandParser:
         subparsers = CalcSubParser.add_subparser(subparsers)
         subparsers = TemplatesSubParser.add_subparser(subparsers)
         subparsers = SplitSubParser.add_subparser(subparsers)
+        # !SECTION
 
         return parser
