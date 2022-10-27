@@ -24,6 +24,7 @@ class FileParser:
         '''Check whether each next date/time is later than the previous ones'''
         bad_lines_inxs = []
         line_inx = 0
+        new_section = False
         last_header = None
         last_reading = None
 
@@ -49,11 +50,12 @@ class FileParser:
                     if (last_header is not None) and (last_header.date > Header(line).date):
                         bad_lines_inxs.append(str(line_inx))
                     last_header = Header(line)
-                    last_reading = None
+                    new_section = True
 
                 elif Reading.is_reading(line):
-                    if (last_reading is not None) and (last_reading.millis_passed >= Reading(line).millis_passed):
+                    if (last_reading is not None) and (last_reading.millis_passed >= Reading(line).millis_passed) and not new_section:
                         bad_lines_inxs.append(str(line_inx))
+                        new_section = False
                     last_reading = Reading(line)
 
     @staticmethod
@@ -134,10 +136,6 @@ class FileParser:
 
         if check and not(fix):
             file_path = FileParser.reduce_readings(file_path, check=check)
-            
-            # if file_path is None:
-            #     logger.error("Failed to retrieve values from file because previous operations were not successful")
-            #     return None
 
         with open(file_path, 'r', encoding='UTF-8') as file_r:
             while True:

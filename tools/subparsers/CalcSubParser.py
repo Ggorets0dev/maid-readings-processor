@@ -16,8 +16,11 @@ class CalcSubParser:
         
         # NOTE - One of this targets must be specified
         check_subparser.add_argument('-vi', '--voltage-interval', action='store_true', help='Find minimal and maximal voltage')
-        
+        check_subparser.add_argument('-ac', '--acceleration', action='store_true', help='Calculate the accelerations')
+
+
         # NOTE - Modes of search and visualization
+        check_subparser.add_argument('-e', '--every', action='store_true', help='Display accelerations between all readings')
         check_subparser.add_argument('-m', '--minimal', nargs=1, type=int, help='Values below this will not be taken into account when searching for a voltage interval (default: 15)')
         check_subparser.add_argument('-a', '--accuracy', nargs=1, type=int, help='Number of decimal places of the displayed values (default: 2, max: 5)')
         return subparsers
@@ -53,4 +56,20 @@ class CalcSubParser:
 
             else:
                 logger.error("Failed to find the volt interval by condition")
+                return
+
+        elif namespace.acceleration:
+            if namespace.every:
+                for header in headers_readings:
+                    enumeration = 1
+                    header.display(raw=False, to_enumerate=True)
+                    for reading_index in range(len(headers_readings[header]) - 1):
+                        first_reading = headers_readings[header][reading_index]
+                        second_reading = headers_readings[header][reading_index + 1]
+                        acceleration = Calculator.calculate_acceleration(first_reading.speed_kmh, first_reading.millis_passed, second_reading.speed_kmh, second_reading.millis_passed)
+                        print(f"    [{enumeration}-{enumeration+1}] Acceleration: {round(acceleration, decimal_places)} m/s")
+                        enumeration += 1
+            else:
+                logger.error("Selection mode for the --acceleration target is not selected")
+                return
         # !SECTION

@@ -35,3 +35,11 @@ class Calculator:
             return None
 
         return interval
+
+    @staticmethod
+    def calculate_acceleration(first_speed_kmh : float, first_time_ms : float, second_speed_kmh : float, second_time_ms : float) -> float:
+        '''Calculate acceleration between to speeds (m/s)'''
+        delta_speed = (second_speed_kmh - first_speed_kmh) * 1000 / 3600
+        delta_time = (second_time_ms - first_time_ms) / 1000
+
+        return delta_speed / delta_time      
