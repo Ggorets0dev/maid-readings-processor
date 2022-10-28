@@ -1,7 +1,8 @@
 #pylint: disable=C0303 C0301 E0401 E0611
 
-from argparse import _SubParsersAction, Namespace, FileType
+from argparse import _SubParsersAction, Namespace
 from loguru import logger
+from models.ReadableFile import ReadableFile
 from tools.FileParser import FileParser
 
 class CheckSubParser:
@@ -11,7 +12,7 @@ class CheckSubParser:
     def add_subparser(subparsers : _SubParsersAction) -> _SubParsersAction:
         '''Creating a subparser'''
         check_subparser = subparsers.add_parser('check', description='Checking incoming data or files against patterns')
-        check_subparser.add_argument('-i', '--input', nargs=1, type=FileType(encoding='UTF-8'), required=True, help='Path to the file with readings')
+        check_subparser.add_argument('-i', '--input', nargs=1, type=ReadableFile, required=True, help='Path to the file with readings')
         check_subparser.add_argument('-p', '--pattern', action='store_true', help='Check that each line matches the header or reading pattern')
         check_subparser.add_argument('-t', '--time', action='store_true', help='Check whether each next date/time is later than the previous ones')
         return subparsers
@@ -30,5 +31,6 @@ class CheckSubParser:
             
         else:
             logger.error("Check mode not selected (--pattern or --time)")
+            return
         # !SECTION
             

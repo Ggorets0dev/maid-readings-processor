@@ -1,7 +1,8 @@
 #pylint: disable=C0303 C0301 E0401 E0611
 
-from argparse import _SubParsersAction, Namespace, FileType
+from argparse import _SubParsersAction, Namespace
 from loguru import logger
+from models.ReadableFile import ReadableFile
 from tools.Calculator import Calculator
 from tools.FileParser import FileParser
 
@@ -12,7 +13,7 @@ class CalcSubParser:
     def add_subparser(subparsers : _SubParsersAction) -> _SubParsersAction:
         '''Creating a subparser'''
         check_subparser = subparsers.add_parser('calc', description='Checking incoming data or files against patterns')
-        check_subparser.add_argument('-i', '--input', nargs=1, type=FileType(encoding='UTF-8'), required=True, help='Path to the file with readings')
+        check_subparser.add_argument('-i', '--input', nargs=1, type=ReadableFile, required=True, help='Path to the file with readings')
         
         # NOTE - One of this targets must be specified
         check_subparser.add_argument('-vi', '--voltage-interval', action='store_true', help='Find minimal and maximal voltage')
@@ -72,4 +73,8 @@ class CalcSubParser:
             else:
                 logger.error("Selection mode for the --acceleration target is not selected")
                 return
+
+        else:
+            logger.error("Calc mode not selected (--voltage-interval or --acceleration)")
+            return
         # !SECTION

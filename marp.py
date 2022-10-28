@@ -13,7 +13,7 @@ from tools.subparsers.CalcSubParser import CalcSubParser
 from tools.subparsers.TemplatesSubParser import TemplatesSubParser
 from tools.subparsers.SplitSubParser import SplitSubParser
 
-__VERSION__ = "0.11.0"
+__VERSION__ = "0.11.1"
 
 
 if __name__ == "__main__":

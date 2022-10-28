@@ -1,12 +1,13 @@
 #pylint: disable=C0301 C0303 E0401 E0611
 
 from datetime import date
-from argparse import _SubParsersAction, Namespace, FileType
+from argparse import _SubParsersAction, Namespace
 from loguru import logger
 from tools.FileParser import FileParser
 from tools.Calculator import Calculator
 from models.Header import Header
 from models.Reading import Reading
+from models.ReadableFile import ReadableFile
 from models.CountedReading import CountedReading
 
 class ShowSubParser:
@@ -16,7 +17,7 @@ class ShowSubParser:
     def add_subparser(subparsers : _SubParsersAction) -> _SubParsersAction:
         '''Creating a subparser'''
         show_subparser = subparsers.add_parser('show', description='Displaying values on the screen without calculating any information')
-        show_subparser.add_argument('-i', '--input', nargs=1, type=FileType(encoding='UTF-8'), required=True, help='Path to the file with readings')
+        show_subparser.add_argument('-i', '--input', nargs=1, type=ReadableFile, required=True, help='Path to the file with readings')
         
         # NOTE - One of this targets must be specified
         show_subparser.add_argument('-he', '--header', action='store_true', help='Display target: headers')

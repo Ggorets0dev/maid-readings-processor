@@ -1,6 +1,7 @@
 #pylint: disable=E0401 C0301 C0303
 
 import os
+import codecs
 from loguru import logger
 from models.Reading import Reading
 from models.Header import Header
@@ -176,7 +177,6 @@ class FileParser:
         part_inx = 1
         line = ''
 
-
         file_w = open(new_file_path + str(part_inx) + '.txt', 'w', encoding='UTF-8')
         with open(file_path, encoding='UTF-8') as file_r:
             while True:
@@ -197,3 +197,14 @@ class FileParser:
             file_w.close()
         
         return part_inx
+
+    @staticmethod
+    def is_utf8(file_path : str) -> bool:
+        "Check if file is in UTF-8"
+        try:
+            with codecs.open(file_path, encoding='utf-8', errors='strict') as file_r:
+                for _ in file_r:
+                    pass
+            return True
+        except (IOError, UnicodeDecodeError):
+            return False

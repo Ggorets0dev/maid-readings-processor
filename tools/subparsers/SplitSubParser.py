@@ -1,7 +1,8 @@
 #pylint: disable=C0303 C0301 E0401 E0611
 
-from argparse import _SubParsersAction, Namespace, FileType
+from argparse import _SubParsersAction, Namespace
 from loguru import logger
+from models.ReadableFile import ReadableFile
 from tools.FileParser import FileParser
 
 class SplitSubParser:
@@ -11,7 +12,7 @@ class SplitSubParser:
     def add_subparser(subparsers : _SubParsersAction) -> _SubParsersAction:
         '''Creating a subparser'''
         split_subparser = subparsers.add_parser('split', description='Split file by parts or line count for better performance (check and reducing are disabled)')
-        split_subparser.add_argument('-i', '--input', nargs=1, type=FileType(encoding='UTF-8'), required=True, help='Path to the file with readings')
+        split_subparser.add_argument('-i', '--input', nargs=1, type=ReadableFile, required=True, help='Path to the file with readings')
 
         # NOTE - Set mode of split
         split_subparser.add_argument('-p', '--parts', nargs=1, type=int, help='Divide the file into PARTS of equal parts (max: 1000)')

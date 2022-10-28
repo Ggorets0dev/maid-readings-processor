@@ -1,4 +1,4 @@
-#pylint: disable=C0303 C0301 E0401
+#pylint: disable=C0303 C0301 E0401 E0611
 
 from argparse import _SubParsersAction, Namespace, FileType
 from loguru import logger
@@ -24,3 +24,4 @@ class ReduceSubParser:
             logger.success(f"File {namespace.input[0].name} successfully reduced, result: {file_path}")
         else:
             logger.error("It was not possible to perform the reduction because the operation was interrupted")
+            return
