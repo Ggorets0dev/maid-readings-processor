@@ -1,7 +1,6 @@
 #pylint: disable=C0303 C0301 E0401 E0611
 
 from argparse import _SubParsersAction, Namespace
-from loguru import logger
 from models.ReadableFile import ReadableFile
 from tools.FileParser import FileParser
 
@@ -30,7 +29,7 @@ class CheckSubParser:
             FileParser.validate_readings_by_time(file_path)
             
         else:
-            logger.error("Check mode not selected (--pattern or --time)")
-            return
+            FileParser.validate_readings_by_time(file_path)
+            FileParser.validate_readings_by_pattern(file_path)
         # !SECTION
             

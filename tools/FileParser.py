@@ -5,6 +5,7 @@ import codecs
 from loguru import logger
 from models.Reading import Reading
 from models.Header import Header
+from models.exceptions import InvalidLineDetectedError, InvalidResourceReductionError, ReadingWithoutHeaderError, ResourceNotFoundError
 
 class FileParser:
     '''Parsing class of the file with module readings'''
@@ -16,8 +17,7 @@ class FileParser:
             with open(file_path, 'r', encoding='UTF-8') as file_r:
                 return sum(1 for _ in file_r)
         else:
-            logger.error(f"File {file_path} not found, no further line counting possible")
-            exit(1)
+            raise ResourceNotFoundError(file_path)
 
 
     @staticmethod
@@ -30,34 +30,35 @@ class FileParser:
         last_reading = None
 
         if not os.path.isfile(file_path):
-            logger.error(f"File {file_path} not found, no further validation possible")
-            exit(1)   
+            raise ResourceNotFoundError(file_path) 
 
         with open(file_path, 'r', encoding='UTF-8') as file_r:
             while True:
                 line = file_r.readline()
                 line_inx += 1
 
-                if not line and len(bad_lines_inxs) == 0:
-                    if log_success:
-                        logger.success(f"File {file_path} was successfully checked, all time and date values increase over time")
-                    return True
+                if not line:                    
+                    if len(bad_lines_inxs) == 0:
+                        if log_success:
+                            logger.success(f"File {file_path} was successfully checked, all time and date values increase over time")
+                        return True
 
-                elif not line and len(bad_lines_inxs) != 0:
-                    logger.error(f"File {file_path} did not pass the validation, found inconsistencies with the time sequence in line(s) number: {', '.join(bad_lines_inxs)}")
-                    return False
+                    elif len(bad_lines_inxs) != 0:
+                        logger.error(f"File {file_path} did not pass the validation, found inconsistencies with the time sequence in line(s) number: {', '.join(bad_lines_inxs)}")
+                        return False
                 
-                elif Header.is_header(line):
-                    if (last_header is not None) and (last_header.date > Header(line).date):
-                        bad_lines_inxs.append(str(line_inx))
-                    last_header = Header(line)
-                    new_section = True
+                else:                    
+                    if Header.is_header(line):
+                        if (last_header is not None) and (last_header.date > Header(line).date):
+                            bad_lines_inxs.append(str(line_inx))
+                        last_header = Header(line)
+                        new_section = True
 
-                elif Reading.is_reading(line):
-                    if (last_reading is not None) and (last_reading.millis_passed >= Reading(line).millis_passed) and not new_section:
-                        bad_lines_inxs.append(str(line_inx))
+                    elif Reading.is_reading(line):
+                        if (last_reading is not None) and (last_reading.millis_passed >= Reading(line).millis_passed) and not new_section:
+                            bad_lines_inxs.append(str(line_inx))
+                        last_reading = Reading(line)
                         new_section = False
-                    last_reading = Reading(line)
 
     @staticmethod
     def validate_readings_by_pattern(file_path : str, log_success=True) -> bool:
@@ -66,8 +67,7 @@ class FileParser:
         line_inx = 0
         
         if not os.path.isfile(file_path):
-            logger.error(f"File {file_path} not found, no further validation possible")
-            exit(1)
+            raise ResourceNotFoundError(file_path)
         
         with open(file_path, 'r', encoding='UTF-8') as file_r:
             while True:
@@ -96,12 +96,10 @@ class FileParser:
         last_header = ""
 
         if not os.path.isfile(file_path):
-            logger.error(f"File {file_path} not found, no further reduction possible")
-            exit(1)
+            raise ResourceNotFoundError(file_path)
 
         elif check and (not FileParser.validate_readings_by_pattern(file_path=file_path, log_success=False) or not FileParser.validate_readings_by_time(file_path=file_path, log_success=False)):
-            logger.error("Specified file does not match the pattern or time, no futher reduction is possible")
-            exit(1)
+            raise InvalidResourceReductionError(file_path)
 
         if len(os.path.dirname(file_path)) == 0:
             result_path = REDUCED_FILE_NAME
@@ -134,13 +132,18 @@ class FileParser:
         headers_readings = {}
         readings = []
         last_header = None
+        line_inx = 0
 
-        if check and not(fix):
+        if not os.path.isfile(file_path):
+            raise ResourceNotFoundError(file_path)
+
+        elif check and not(fix):
             file_path = FileParser.reduce_readings(file_path, check=check)
 
         with open(file_path, 'r', encoding='UTF-8') as file_r:
             while True:
                 line = file_r.readline()
+                line_inx += 1
 
                 if not line:
                     if len(readings) != 0:
@@ -151,11 +154,10 @@ class FileParser:
                     continue
 
                 elif Reading.is_reading(line):
-                    if last_header is None:
-                        logger.error("Reading encountered before Header, failed to bind")
-                        exit(1)
-                    else:
+                    if last_header is not None:
                         readings.append(Reading(line))
+                    else:
+                        raise ReadingWithoutHeaderError(line_inx)
 
                 elif Header.is_header(line):
                     if (last_header is not None):
@@ -164,8 +166,7 @@ class FileParser:
                     last_header = Header(line)
                 
                 elif not fix:
-                    logger.error("An unknown format string was detected")
-                    exit(1)
+                    raise InvalidLineDetectedError(line_inx)
         
         return headers_readings
 
@@ -176,6 +177,9 @@ class FileParser:
         line_inx = 0
         part_inx = 1
         line = ''
+
+        if not os.path.isfile(file_path):
+            raise ResourceNotFoundError(file_path)
 
         file_w = open(new_file_path + str(part_inx) + '.txt', 'w', encoding='UTF-8')
         with open(file_path, encoding='UTF-8') as file_r:
@@ -200,7 +204,7 @@ class FileParser:
 
     @staticmethod
     def is_utf8(file_path : str) -> bool:
-        "Check if file is in UTF-8"
+        '''Check if file is in UTF-8'''
         try:
             with codecs.open(file_path, encoding='utf-8', errors='strict') as file_r:
                 for _ in file_r:

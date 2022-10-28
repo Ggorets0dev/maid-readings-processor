@@ -71,10 +71,10 @@ class CalcSubParser:
                         print(f"    [{enumeration}-{enumeration+1}] Acceleration: {round(acceleration, decimal_places)} m/s")
                         enumeration += 1
             else:
-                logger.error("Selection mode for the --acceleration target is not selected")
+                logger.error("Selection mode for the --acceleration target is not selected (--every)")
                 return
 
         else:
-            logger.error("Calc mode not selected (--voltage-interval or --acceleration)")
+            logger.error("Calc mode not selected (--voltage-interval / --acceleration)")
             return
         # !SECTION

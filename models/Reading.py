@@ -18,7 +18,7 @@ class Reading:
             reading += f"{Reading.display_cnt}) "
         
         if not raw:
-            reading += f"millis_passed: {self.millis_passed}, impulse_cnt: {self.impulse_cnt}, analog_voltage: {self.analog_voltage}"
+            reading += f"millis_passed: {self.millis_passed} ms, impulse_cnt: {self.impulse_cnt}, analog_voltage: {self.analog_voltage}"
         else:
             reading += f"{self.millis_passed} | {self.impulse_cnt} | {self.analog_voltage}"
 

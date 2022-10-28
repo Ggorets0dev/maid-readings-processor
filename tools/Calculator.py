@@ -42,4 +42,4 @@ class Calculator:
         delta_speed = (second_speed_kmh - first_speed_kmh) * 1000 / 3600
         delta_time = (second_time_ms - first_time_ms) / 1000
 
-        return delta_speed / delta_time      
+        return delta_speed / delta_time

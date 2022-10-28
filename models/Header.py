@@ -26,7 +26,7 @@ class Header:
             header += f"{Header.display_cnt}) "
         
         if not raw:
-            header += f"date: {self.date} | config: [spokes count: {self.spokes_cnt}, wheel circumfulence: {self.wheel_circ}, max_voltage: {self.max_voltage}, save delay: {self.save_delay}]"
+            header += f"date: {self.date} | config: [spokes count: {self.spokes_cnt}, wheel circumfulence: {self.wheel_circ}mm, max_voltage: {self.max_voltage}v, save delay: {self.save_delay}s]"
         else:
             header += f"{self.date} ( {self.spokes_cnt} | {self.wheel_circ} | {self.max_voltage} | {self.save_delay} )"
        
