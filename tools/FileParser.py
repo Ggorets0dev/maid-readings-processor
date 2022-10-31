@@ -1,11 +1,11 @@
-#pylint: disable=E0401 C0301 C0303
+#pylint: disable=E0401 E0611 C0301 C0303
 
 import os
 import codecs
 from loguru import logger
 from models.Reading import Reading
 from models.Header import Header
-from models.exceptions import InvalidLineDetectedError, InvalidResourceReductionError, ReadingWithoutHeaderError, ResourceNotFoundError
+from models.exceptions import InvalidLineDetectedError, ReadingWithoutHeaderError, ResourceNotFoundError
 
 class FileParser:
     '''Parsing class of the file with module readings'''
@@ -90,16 +90,13 @@ class FileParser:
                     bad_lines_inxs.append(str(line_inx))
 
     @staticmethod
-    def reduce_readings(file_path : str, check=True) -> str:
+    def reduce_readings(file_path : str) -> str:
         '''Optimizing the file with readings, deleting unnecessary lines'''
         REDUCED_FILE_NAME = os.path.splitext(file_path)[0] + "_reduced.txt"
         last_header = ""
 
         if not os.path.isfile(file_path):
             raise ResourceNotFoundError(file_path)
-
-        elif check and (not FileParser.validate_readings_by_pattern(file_path=file_path, log_success=False) or not FileParser.validate_readings_by_time(file_path=file_path, log_success=False)):
-            raise InvalidResourceReductionError(file_path)
 
         if len(os.path.dirname(file_path)) == 0:
             result_path = REDUCED_FILE_NAME
@@ -127,7 +124,7 @@ class FileParser:
         return result_path
 
     @staticmethod
-    def parse_readings(file_path : str, check=True, fix=False) -> dict[Header, list[Reading]]:
+    def parse_readings(file_path : str, fix=False) -> dict[Header, list[Reading]]:
         '''Reading values from a file and transferring them to a list'''
         headers_readings = {}
         readings = []
@@ -136,9 +133,6 @@ class FileParser:
 
         if not os.path.isfile(file_path):
             raise ResourceNotFoundError(file_path)
-
-        elif check and not(fix):
-            file_path = FileParser.reduce_readings(file_path, check=check)
 
         with open(file_path, 'r', encoding='UTF-8') as file_r:
             while True:

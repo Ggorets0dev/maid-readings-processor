@@ -1,5 +1,6 @@
-# pylint: disable=E0401
+# pylint: disable=E0401 E0611
 
+from datetime import date
 from models.Header import Header
 from models.CountedReading import CountedReading
 from models.Reading import Reading
@@ -8,33 +9,32 @@ class Calculator:
     '''Operations with readings got from module'''
 
     @staticmethod
-    def convert_readings(headers_readings : dict[Header, list[Reading]], decimal_places : int) -> dict[Header, list[CountedReading]]:
+    def convert_readings(headers_readings : dict[Header, list[Reading]]) -> dict[Header, list[CountedReading]]:
         '''Convert list of Readings to list of CountedReadings'''
-        headers_counted_readings = {}
-        counted_readings = []
         for header in headers_readings:
             for i in range(len(headers_readings[header])):
-                counted_readings.append(CountedReading(headers_readings[header][i], header, decimal_places))
-            headers_counted_readings[header] = counted_readings.copy()
-            counted_readings.clear()
-        return headers_counted_readings
+                headers_readings[header][i] = CountedReading(headers_readings[header][i], header)
+        return headers_readings
 
     @staticmethod
-    def find_voltage_interval(headers_readings : dict[Header, list[CountedReading]], minimal_voltage=15) -> dict[str, float]:
+    def find_voltage_interval(headers_readings : dict[Header, list[CountedReading]], minimal_voltage : int, date_start : date, date_end : date) -> dict[str, float]:
         '''Find minimal and maximal voltage in all CountedReadings'''
         interval = { 'min': 1000.0, 'max': 0.0 }
+        
         for header in headers_readings:
+
+            if not Header.is_date_in_interval(header.date, date_start, date_end):
+                continue
+
             for reading in headers_readings[header]:
-                if reading.voltage_v < minimal_voltage:
-                    continue
-                else:
+                if reading.voltage_v >= minimal_voltage:
                     interval['min'] = min(interval['min'], reading.voltage_v)
                     interval['max'] = max(interval['max'], reading.voltage_v)
         
-        if interval['min'] == 1000.0: # * Check if it's still initial value
+        if interval['min'] != 1000.0: # * Check if it's still initial value
+            return interval
+        else:
             return None
-
-        return interval
 
     @staticmethod
     def calculate_acceleration(first_speed_kmh : float, first_time_ms : float, second_speed_kmh : float, second_time_ms : float) -> float:

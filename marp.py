@@ -3,16 +3,16 @@
 '''
 marp - MaidReadingsProcessor (Maid Software's processing utility)
 Written by Ggorets0dev (nikgorets4work@gmail.com)
-Version: 0.12.0
+Version: 0.13.0
 GitHub: https://github.com/Ggorets0dev/maid-readings-processor
 License: MIT
 '''
 
-__VERSION__ = "0.12.0"
+__VERSION__ = "0.13.0"
 
 import sys
 import pyfiglet
-from models.exceptions import CalledAsModuleError, exception_hook
+from models.exceptions import CalledAsModuleError, user_exception_hook
 from tools.CommandParser import CommandParser
 from tools.subparsers.ShowSubParser import ShowSubParser
 from tools.subparsers.CheckSubParser import CheckSubParser
@@ -22,18 +22,19 @@ from tools.subparsers.TemplatesSubParser import TemplatesSubParser
 from tools.subparsers.SplitSubParser import SplitSubParser
 
 # NOTE - Assigning a more user-friendly exception output 
-sys.excepthook = exception_hook
+sys.excepthook = user_exception_hook
 
 if __name__ == "__main__":
-    namespace = CommandParser.create_parser().parse_args(sys.argv[1:])
+    parser = CommandParser.create_parser()
+    namespace = parser.parse_args(sys.argv[1:])
 
-    if namespace.version or namespace.command is None:
+    if namespace.version:
         print(pyfiglet.figlet_format('marp', font = 'ogre'), end='')
         print(f"Version: {__VERSION__}")
         print("Developer: Ggorets0dev (nikgorets4work@gmail.com)")
         print("GitHub: https://github.com/Ggorets0dev/maid-readings-processor")
 
-    #SECTION - Processing commands from subparsers
+    # SECTION - Processing commands from subparsers
     elif namespace.command == "show":
         ShowSubParser.run_show(namespace)
     
@@ -52,6 +53,9 @@ if __name__ == "__main__":
     elif namespace.command == "split":
         SplitSubParser.run_split(namespace)
     # !SECTION
+
+    elif not namespace.command:
+        parser.print_help()
 
 else:
     raise CalledAsModuleError

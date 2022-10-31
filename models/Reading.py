@@ -12,10 +12,7 @@ class Reading:
    
     def display(self, raw : bool, to_enumerate : bool) -> None:
         '''Displaying Reading in different modes'''
-        reading = ""
-
-        if to_enumerate:
-            reading += f"{Reading.display_cnt}) "
+        reading = f"{Reading.display_cnt}) " if to_enumerate else ""
         
         if not raw:
             reading += f"millis_passed: {self.millis_passed} ms, impulse_cnt: {self.impulse_cnt}, analog_voltage: {self.analog_voltage}"
@@ -30,6 +27,7 @@ class Reading:
         '''Display amount of Readings'''
         for reading in readings:
             reading.display(raw=raw, to_enumerate=to_enumerate)
+
 
     @staticmethod
     def is_reading(reading : str) -> bool:

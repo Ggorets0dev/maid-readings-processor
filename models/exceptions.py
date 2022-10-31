@@ -6,7 +6,7 @@ import traceback
 from loguru import logger
 
 # NOTE - Custom user-friendly exception hook, shorter and clearer output
-def exception_hook(e_type, value, tr_bck):
+def user_exception_hook(e_type, value, tr_bck):
     '''Custom exception handler for whole program'''
     trace = traceback.format_tb(tr_bck, limit=1)
     trace = trace[0].split('\n')[0]
@@ -27,7 +27,8 @@ class Error(Exception):
         'InvalidResourceReductionError': 472,
         'InvalidLineDetectedError': 124,
         'ReadingWithoutHeaderError': 491,
-        'CalledAsModuleError': 362
+        'CalledAsModuleError': 362,
+        'InvalidDatePassedError': 461
     }
     
     def __init__(self) -> None:
@@ -78,3 +79,9 @@ class CalledAsModuleError(Error):
     def __init__(self) -> None:
         super().__init__()
         logger.error("Marp was called as a module from another file, such use is not available")
+
+class InvalidDatePassedError(Error):
+    '''Failed to parse string to date with pattern dd.mm.yyyyy'''
+    def __init__(self) -> None:
+        super().__init__()
+        logger.error("Transmitted string could not be converted to a date (requires dd.mm.yyyy template)")
