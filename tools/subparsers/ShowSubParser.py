@@ -4,7 +4,7 @@ from argparse import _SubParsersAction, Namespace
 from loguru import logger
 from tools.FileParser import FileParser
 from tools.Calculator import Calculator
-from models.Header import Header
+from tools.additional_datetime_utils import try_parse_datetime, is_datetime_in_interval
 from models.Reading import Reading
 from models.ReadableFile import ReadableFile
 from models.CountedReading import CountedReading
@@ -22,7 +22,6 @@ class ShowSubParser:
         # NOTE - One of this targets must be specified
         show_subparser.add_argument('-he', '--header', action='store_true', help='Display target: headers')
         show_subparser.add_argument('-re', '--reading', action='store_true', help='Display target: readings')
-        show_subparser.add_argument('-da', '--date', nargs='+', help='Display target: readings written in specified day (specify two for the range) (dd.mm.yyyy)')
         show_subparser.add_argument('-lc', '--line-count', action='store_true', help='Display number of lines in file')
 
         # NOTE - Modes of visualisation
@@ -31,6 +30,7 @@ class ShowSubParser:
         show_subparser.add_argument('-e', '--enumerate', action='store_true', help='Number displayed values')
         show_subparser.add_argument('-o', '--original', action='store_true', help='No line check and no file reducing (enabled by default)')
         show_subparser.add_argument('-c', '--calculate', nargs=1, type=int, help='Verify the number of pulses in km/h and the analog value in volts with CALCULATE decimal places (disabled by default)')
+        show_subparser.add_argument('-d', '--date-time', nargs='+', help='Readings or headers written in specified day and time (specify two for the range) (dd.mm.yyyy or dd.mm.yyyy-hh:mm:ss)')
         return subparsers
 
     @staticmethod
@@ -38,6 +38,15 @@ class ShowSubParser:
         '''Run if Show subparser was called'''
 
         resource_path = namespace.input[0].name
+
+        # NOTE - Check if count of --date args is wrong
+        if namespace.date_time and len(namespace.date_time) > 2:
+            logger.error("One or two dates can be passed with the --date argument")
+            return
+
+        # NOTE - Filling parameters with values or None if no arguments are used
+        datetime_start = try_parse_datetime(namespace.date_time[0]) if namespace.date_time and len(namespace.date_time) >= 1 else None
+        datetime_end = try_parse_datetime(namespace.date_time[1]) if namespace.date_time and len(namespace.date_time) == 2 else None
 
         # NOTE - Processing targets: --line-count
         if namespace.line_count:
@@ -58,50 +67,34 @@ class ShowSubParser:
         
         # NOTE - Use convertion of Reading to CountedReading with specified accuracy
         if namespace.calculate:
-            if namespace.calculate[0] <= 5 and namespace.calculate[0] > 0:
+            if  namespace.calculate[0] > 0 and namespace.calculate[0] <= 5:
                 headers_readings = Calculator.convert_readings(headers_readings)
             else:
-                logger.error("Calculation accuracy --calculate: maximal: 5, minimal: 1 (decimal places)")
+                logger.error("Accuracy at --calculate must have a value between 1 and 5")
                 return
 
         # SECTION - Processing targets: --header --reading --date
-        if namespace.header or namespace.reading:
-            if namespace.header:
-                for header in headers_readings:
+        found_any = False
+        if namespace.header:
+            for header in headers_readings:
+                if is_datetime_in_interval(header.datetime, datetime_start, datetime_end):
                     header.display(raw=namespace.raw, to_enumerate=namespace.enumerate)
-                        
-            elif namespace.reading:
-                for header in headers_readings:
+                    found_any = True
+            if not found_any:
+                logger.info('No headers was found on specified --datetime')
+                return
+
+        elif namespace.reading:
+            for header in headers_readings:
+                if is_datetime_in_interval(header.datetime, datetime_start, datetime_end):
                     for reading in headers_readings[header]:
                         if isinstance(reading, Reading):
                             reading.display(raw=namespace.raw, to_enumerate=namespace.enumerate)
                         elif isinstance(reading, CountedReading):
                             reading.display(raw=namespace.raw, to_enumerate=namespace.enumerate, decimal_places=namespace.calculate[0])
-
-            
-        elif namespace.date:
-            if len(namespace.date) > 2:
-                logger.error("One or two dates can be passed with the --date argument")
-                return
-
-            found_any = False
-
-            date_start = Header.try_parse_date(namespace.date[0]) if len(namespace.date) >= 1 else None
-            date_end = Header.try_parse_date(namespace.date[1]) if len(namespace.date) == 2 else None
-
-            for header in headers_readings:
-                if Header.is_date_in_interval(header.date, date_start, date_end):
-                    found_any = True
-                else:
-                    continue
-
-                if isinstance(headers_readings[header][0], Reading):
-                    Reading.display_list(headers_readings[header], raw=namespace.raw, to_enumerate=namespace.enumerate)
-                elif isinstance(headers_readings[header][0], CountedReading):
-                    CountedReading.display_list(headers_readings[header], raw=namespace.raw, to_enumerate=namespace.enumerate, decimal_places=namespace.calculate[0])
-            
+                        found_any = True
             if not found_any:
-                logger.info("No readings for requested date(s) were found")
+                logger.info('No readings was found on specified --datetime')
                 return
 
         else:

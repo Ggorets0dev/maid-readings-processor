@@ -3,8 +3,8 @@
 from argparse import _SubParsersAction, Namespace
 from loguru import logger
 from models.ReadableFile import ReadableFile
-from models.Header import Header
 from models.exceptions import InvalidResourceReductionError
+from tools.additional_datetime_utils import try_parse_datetime, is_datetime_in_interval
 from tools.Calculator import Calculator
 from tools.FileParser import FileParser
 
@@ -22,7 +22,7 @@ class CalcSubParser:
         check_subparser.add_argument('-ac', '--acceleration', action='store_true', help='Calculate the accelerations')
 
         # NOTE - Modes of search and visualization
-        check_subparser.add_argument('-d', '--date', nargs='+', type=str, help='Date on which to specify acceleration or voltage interval (specify two for the range) (dd.mm.yyyy)')
+        check_subparser.add_argument('-d', '--date-time', nargs='+', type=str, help='Date and time on which to specify acceleration or voltage interval (specify two for the range) (dd.mm.yyyy or dd.mm.yyyy-hh:mm:ss)')
         check_subparser.add_argument('-m', '--minimal', nargs=1, type=int, help='Values below this will not be taken into account when searching for a voltage interval (default: 15)')
         check_subparser.add_argument('-a', '--accuracy', nargs=1, type=int, help='Number of decimal places of the displayed values (default: 2, max: 5)')
         return subparsers
@@ -48,19 +48,19 @@ class CalcSubParser:
         headers_readings = Calculator.convert_readings(headers_readings)
 
         # NOTE - Check if count of --date args is wrong
-        if namespace.date and len(namespace.date) > 2:
+        if namespace.date_time and len(namespace.date_time) > 2:
             logger.error("One or two dates can be passed with the --date argument")
             return
 
         # NOTE - Filling parameters with values or None if no arguments are used
         minimal_value = namespace.minimal[0] if namespace.minimal else 15
-        date_start = Header.try_parse_date(namespace.date[0]) if namespace.date and len(namespace.date) >= 1 else None
-        date_end = Header.try_parse_date(namespace.date[1]) if namespace.date and len(namespace.date) == 2 else None
+        datetime_start = try_parse_datetime(namespace.date_time[0]) if namespace.date_time and len(namespace.date_time) >= 1 else None
+        datetime_end = try_parse_datetime(namespace.date_time[1]) if namespace.date_time and len(namespace.date_time) == 2 else None
 
         # NOTE - Set calculation accuracy (arg or default)
         if not namespace.accuracy:
             decimal_places = 2
-        elif namespace.accuracy[0] <= 5 and namespace.accuracy[0] > 0:
+        elif namespace.accuracy[0] > 0 and namespace.accuracy[0] <= 5:
             decimal_places = namespace.accuracy[0]
         else:
             logger.error("Used unavailable --accuracy, the value must be from 1 to 5 inclusive")
@@ -68,7 +68,7 @@ class CalcSubParser:
 
         # SECTION - Processing targets: --voltage-interval
         if namespace.voltage_interval:
-            voltage_interval = Calculator.find_voltage_interval(headers_readings, minimal_value, date_start, date_end)
+            voltage_interval = Calculator.find_voltage_interval(headers_readings, minimal_value, datetime_start, datetime_end)
             
             if voltage_interval is not None:
                 print(f"Minimal voltage: {round(voltage_interval['min'], decimal_places)}v\nMaximal voltage: {round(voltage_interval['max'], decimal_places)}v")
@@ -80,10 +80,7 @@ class CalcSubParser:
             for header in headers_readings:
                 enumeration = 1
 
-                date_start = Header.try_parse_date(namespace.date[0]) if namespace.date and len(namespace.date) >= 1 else None
-                date_end = Header.try_parse_date(namespace.date[1]) if namespace.date and len(namespace.date) == 2 else None
-
-                if not Header.is_date_in_interval(header.date, date_start, date_end):
+                if not is_datetime_in_interval(header.datetime, datetime_start, datetime_end):
                     continue
 
                 header.display(raw=False, to_enumerate=True)

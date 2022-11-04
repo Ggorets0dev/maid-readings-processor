@@ -49,7 +49,7 @@ class FileParser:
                 
                 else:                    
                     if Header.is_header(line):
-                        if (last_header is not None) and (last_header.date > Header(line).date):
+                        if (last_header is not None) and (last_header.datetime > Header(line).datetime):
                             bad_lines_inxs.append(str(line_inx))
                         last_header = Header(line)
                         new_section = True
@@ -200,7 +200,7 @@ class FileParser:
     def is_utf8(file_path : str) -> bool:
         '''Check if file is in UTF-8'''
         try:
-            with codecs.open(file_path, encoding='utf-8', errors='strict') as file_r:
+            with codecs.open(file_path, encoding='UTF-8', errors='strict') as file_r:
                 for _ in file_r:
                     pass
             return True

@@ -28,7 +28,7 @@ class Error(Exception):
         'InvalidLineDetectedError': 124,
         'ReadingWithoutHeaderError': 491,
         'CalledAsModuleError': 362,
-        'InvalidDatePassedError': 461
+        'InvalidDateTimePassedError': 461
     }
     
     def __init__(self) -> None:
@@ -80,8 +80,8 @@ class CalledAsModuleError(Error):
         super().__init__()
         logger.error("Marp was called as a module from another file, such use is not available")
 
-class InvalidDatePassedError(Error):
-    '''Failed to parse string to date with pattern dd.mm.yyyyy'''
+class InvalidDateTimePassedError(Error):
+    '''Failed to parse string to date with pattern dd.mm.yyyyy / dd.mm.yyyy-hh:mm:ss'''
     def __init__(self) -> None:
         super().__init__()
-        logger.error("Transmitted string could not be converted to a date (requires dd.mm.yyyy template)")
+        logger.error("Transmitted string could not be converted to a date or datetime (requires dd.mm.yyyy or dd.mm.yyyy-hh:mm:ss template)")
