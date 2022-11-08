@@ -5,7 +5,7 @@ import codecs
 from loguru import logger
 from models.Reading import Reading
 from models.Header import Header
-from models.exceptions import InvalidLineDetectedError, ReadingWithoutHeaderError, ResourceNotFoundError
+from models.exceptions import ReadingWithoutHeaderError, ResourceNotFoundError
 
 class FileParser:
     '''Parsing class of the file with module readings'''
@@ -18,7 +18,6 @@ class FileParser:
                 return sum(1 for _ in file_r)
         else:
             raise ResourceNotFoundError(file_path)
-
 
     @staticmethod
     def validate_readings_by_time(file_path : str, log_success=True) -> bool:
@@ -40,11 +39,12 @@ class FileParser:
                 if not line:                    
                     if len(bad_lines_inxs) == 0:
                         if log_success:
-                            logger.success(f"File {file_path} was successfully checked, all time and date values increase over time")
+                            logger.success(f"File {file_path} passed the time sequence check")
                         return True
 
                     elif len(bad_lines_inxs) != 0:
                         logger.error(f"File {file_path} did not pass the validation, found inconsistencies with the time sequence in line(s) number: {', '.join(bad_lines_inxs)}")
+                        # print('failed time')
                         return False
                 
                 else:                    
@@ -55,7 +55,7 @@ class FileParser:
                         new_section = True
 
                     elif Reading.is_reading(line):
-                        if (last_reading is not None) and (last_reading.millis_passed >= Reading(line).millis_passed) and not new_section:
+                        if (last_reading is not None) and (last_reading.millis_passed > Reading(line).millis_passed) and not new_section:
                             bad_lines_inxs.append(str(line_inx))
                         last_reading = Reading(line)
                         new_section = False
@@ -65,7 +65,8 @@ class FileParser:
         '''Check if all lines of the file correspond to the Header or Reading patterns'''
         bad_lines_inxs = []
         line_inx = 0
-        
+        last_header = None
+
         if not os.path.isfile(file_path):
             raise ResourceNotFoundError(file_path)
         
@@ -76,24 +77,28 @@ class FileParser:
                 
                 if not line and len(bad_lines_inxs) == 0:
                     if log_success:
-                        logger.success(f"File {file_path} was successfully checked, all lines match either header or reading pattern")
+                        logger.success(f"File {file_path} passed the pattern check")
                     return True
 
                 elif not line and len(bad_lines_inxs) != 0:
                     logger.error(f"File {file_path} did not pass the validation, found inconsistencies with the template in line(s) number: {', '.join(bad_lines_inxs)}")
+                    # print('failed pattern')
                     return False
 
                 elif line  == '\n' or line  == '':
                     continue
 
-                elif not(Header.is_header(line)) and not(Reading.is_reading(line)):
+                elif Header.is_header(line):
+                    last_header = Header(line)
+
+                elif (not(Header.is_header(line)) and not(Reading.is_reading(line))) or (Reading.is_reading(line) and not last_header):
                     bad_lines_inxs.append(str(line_inx))
 
     @staticmethod
     def reduce_readings(file_path : str) -> str:
         '''Optimizing the file with readings, deleting unnecessary lines'''
         REDUCED_FILE_NAME = os.path.splitext(file_path)[0] + "_reduced.txt"
-        last_header = ""
+        last_header = None
 
         if not os.path.isfile(file_path):
             raise ResourceNotFoundError(file_path)
@@ -114,9 +119,9 @@ class FileParser:
                     continue
 
                 elif Header.is_header(line):
-                    if last_header == "" or last_header != line:
+                    if not last_header or (last_header and last_header.datetime != Header(line).datetime):
                         file_w.write(line)
-                    last_header = line
+                    last_header = Header(line)
                 
                 elif Reading.is_reading(line):
                     file_w.write(line)
@@ -124,12 +129,12 @@ class FileParser:
         return result_path
 
     @staticmethod
-    def parse_readings(file_path : str, fix=False) -> dict[Header, list[Reading]]:
+    def parse_readings(file_path : str) -> dict[Header, list[Reading]]:
         '''Reading values from a file and transferring them to a list'''
         headers_readings = {}
         readings = []
-        last_header = None
         line_inx = 0
+        last_header = None
 
         if not os.path.isfile(file_path):
             raise ResourceNotFoundError(file_path)
@@ -144,9 +149,6 @@ class FileParser:
                         headers_readings[last_header] = readings
                     break
 
-                elif line  == '\n' or line  == '':
-                    continue
-
                 elif Reading.is_reading(line):
                     if last_header is not None:
                         readings.append(Reading(line))
@@ -158,9 +160,6 @@ class FileParser:
                         headers_readings[last_header] = readings.copy()
                         readings.clear()
                     last_header = Header(line)
-                
-                elif not fix:
-                    raise InvalidLineDetectedError(line_inx)
         
         return headers_readings
 
@@ -176,18 +175,19 @@ class FileParser:
             raise ResourceNotFoundError(file_path)
 
         file_w = open(new_file_path + str(part_inx) + '.txt', 'w', encoding='UTF-8')
-        with open(file_path, encoding='UTF-8') as file_r:
+        with open(file_path, 'r', encoding='UTF-8') as file_r:
             while True:
                 line = file_r.readline()
-                if line_inx >= part_size and Header.is_header(line):
+
+                if not line:
+                    break
+
+                elif line_inx >= part_size and Header.is_header(line):
                     line_inx = 1
                     part_inx += 1
                     file_w.close()
                     file_w = open(new_file_path + str(part_inx) + '.txt', 'w', encoding='UTF-8')
                     file_w.write(line)
-                
-                elif not line:
-                    break
 
                 else:
                     file_w.write(line)

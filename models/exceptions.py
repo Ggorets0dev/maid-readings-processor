@@ -21,14 +21,14 @@ class Error(Exception):
     # NOTE - Codes (random by now) of all available errors, KEY MUST BE A CLASS NAME
     CODES = {
         'Error': 0,
-        'ResourceSizeExceededError': 421,
-        'ResourceNotFoundError': 582,
-        'ResourceWrongEncodingError': 638,
-        'InvalidResourceReductionError': 472,
-        'InvalidLineDetectedError': 124,
-        'ReadingWithoutHeaderError': 491,
-        'CalledAsModuleError': 362,
-        'InvalidDateTimePassedError': 461
+        'ResourceSizeExceededError': 1,
+        'ResourceNotFoundError': 2,
+        'ResourceWrongEncodingError': 3,
+        'InvalidResourceReductionError': 4,
+        'InvalidLineDetectedError': 5,
+        'ReadingWithoutHeaderError': 6,
+        'CalledAsModuleError': 7,
+        'InvalidDateTimePassedError': 8
     }
     
     def __init__(self) -> None:
@@ -36,7 +36,6 @@ class Error(Exception):
         self.name = type(self).__name__
         self.code = Error.CODES[self.name]
         logger.error(f"Raised {self.name} (code: {self.code})")
-
 
 class ResourceSizeExceededError(Error):
     '''There are too many lines in the file requested for processing'''
@@ -56,11 +55,11 @@ class ResourceWrongEncodingError(Error):
         super().__init__()
         logger.error(f"File {file_path} has characters incompatible with UTF-8 encoding")
 
-class InvalidResourceReductionError(Error):
+class InvalidResourceError(Error):
     '''Attempting to shorten a file that failed validation'''
     def __init__(self, file_path : str) -> None:
         super().__init__()
-        logger.error(f"File {file_path} did not pass validation, no futher reduction is possible")
+        logger.error(f"File {file_path} did not pass validation, no futher operations are possible")
 
 class InvalidLineDetectedError(Error):
     '''String does not match any of the available templates'''

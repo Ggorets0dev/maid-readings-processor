@@ -1,7 +1,7 @@
 # pylint: disable=E0401 E0611
 
 import os
-from models.exceptions import ResourceSizeExceededError, ResourceNotFoundError, ResourceWrongEncodingError
+from models.exceptions import ResourceSizeExceededError, ResourceNotFoundError, ResourceWrongEncodingError, InvalidResourceError
 from tools.FileParser import FileParser
 
 class ReadableFile:
@@ -14,7 +14,10 @@ class ReadableFile:
             lines_cnt = FileParser.count_lines(file_path)
             if lines_cnt < ReadableFile.MAXIMAL_FILE_LENGTH:
                 if FileParser.is_utf8(file_path):
-                    self.name = file_path
+                    if FileParser.validate_readings_by_pattern(file_path=file_path, log_success=False) and FileParser.validate_readings_by_time(file_path=file_path, log_success=False):
+                        self.name = file_path
+                    else:
+                        raise InvalidResourceError(file_path)
                 else:
                     raise ResourceWrongEncodingError(file_path)
             else:

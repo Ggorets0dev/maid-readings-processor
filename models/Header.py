@@ -41,6 +41,6 @@ class Header:
         '''Trying to determine if the string is Header'''
         header_parts = header.split(' ')
         try:
-            return len(header_parts) == len(Header.PATTERN.split(' ')) and is_datetime(header_parts[1], True) and header_parts[3].isdigit() and header_parts[5].isdigit() and header_parts[7].isdigit() and (isinstance(float(header_parts[9]), float))
+            return len(header_parts) == len(Header.PATTERN.split(' ')) and is_datetime(header_parts[1]) and header_parts[3].isdigit() and header_parts[5].isdigit() and header_parts[7].isdigit() and (isinstance(float(header_parts[9]), float))
         except IndexError:
             return False

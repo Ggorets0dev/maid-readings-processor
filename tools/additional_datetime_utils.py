@@ -1,14 +1,13 @@
 #pylint: disable=E0401 E0611 W0707 C0200
 
 from datetime import datetime, timedelta
-from dateutil.parser import parse
 from models.exceptions import InvalidDateTimePassedError
 from models.CountedReading import CountedReading
 
-def is_datetime(date_str : str, fuzzy=False) -> bool:
+def is_datetime(datetime_str : str) -> bool:
     '''Return whether the string can be interpreted as a datetime'''
     try:
-        parse(date_str, fuzzy=fuzzy)
+        datetime.strptime(datetime_str, '%d.%m.%Y-%H:%M:%S')
         return True
     except ValueError:
         return False

@@ -3,13 +3,19 @@
 from argparse import _SubParsersAction, Namespace
 from loguru import logger
 from models.ReadableFile import ReadableFile
-from models.exceptions import InvalidResourceReductionError
+from models.Header import Header
+from models.Reading import Reading
+from models.CountedReading import CountedReading
 from tools.additional_datetime_utils import try_parse_datetime, is_datetime_in_interval
 from tools.Calculator import Calculator
-from tools.FileParser import FileParser
 
 class CalcSubParser:
     '''Calculations based on headers and readings'''
+
+    # TODO - Average acceleration (m/s^2)
+    # TODO - Average speed braking (m/s^2)
+    # TODO - Average speed (km/h)
+    # TODO - Travel time
 
     @staticmethod
     def add_subparser(subparsers : _SubParsersAction) -> _SubParsersAction:
@@ -31,21 +37,7 @@ class CalcSubParser:
     def run_calc(namespace : Namespace) -> None:
         '''Run if Calc subparser was called'''
 
-        # SECTION - Validate and reduce readings before parsing
         resource_path = namespace.input[0].name
-
-        time_check = FileParser.validate_readings_by_time(file_path=resource_path, log_success=False)
-        pattern_check = FileParser.validate_readings_by_pattern(file_path=resource_path, log_success=False)
-        
-        if time_check and pattern_check:
-            resource_path = FileParser.reduce_readings(resource_path)
-        else:
-            raise InvalidResourceReductionError
-        # !SECTION
-
-        # NOTE - Parse readings and calculate speed and voltage
-        headers_readings = FileParser.parse_readings(file_path=namespace.input[0].name)
-        headers_readings = Calculator.convert_readings(headers_readings)
 
         # NOTE - Check if count of --date args is wrong
         if namespace.date_time and len(namespace.date_time) > 2:
@@ -57,7 +49,7 @@ class CalcSubParser:
         datetime_start = try_parse_datetime(namespace.date_time[0]) if namespace.date_time and len(namespace.date_time) >= 1 else None
         datetime_end = try_parse_datetime(namespace.date_time[1]) if namespace.date_time and len(namespace.date_time) == 2 else None
 
-        # NOTE - Set calculation accuracy (arg or default)
+        # NOTE - Set calculation accuracy (arg or default=2)
         if not namespace.accuracy:
             decimal_places = 2
         elif namespace.accuracy[0] > 0 and namespace.accuracy[0] <= 5:
@@ -66,36 +58,57 @@ class CalcSubParser:
             logger.error("Used unavailable --accuracy, the value must be from 1 to 5 inclusive")
             return
 
-        # SECTION - Processing targets: --voltage-interval
+        # SECTION - Processing targets: --voltage-interval --acceleration
         if namespace.voltage_interval:
-            voltage_interval = Calculator.find_voltage_interval(headers_readings, minimal_value, datetime_start, datetime_end)
+            voltage_interval = Calculator.find_voltage_interval(resource_path, minimal_value, datetime_start, datetime_end)
             
             if voltage_interval is not None:
                 print(f"Minimal voltage: {round(voltage_interval['min'], decimal_places)}v\nMaximal voltage: {round(voltage_interval['max'], decimal_places)}v")
             else:
-                logger.info("No volt interval was found for these conditions")
+                logger.info("No voltage interval was found for specified conditions")
                 return
 
         elif namespace.acceleration:
-            for header in headers_readings:
-                enumeration = 1
+            last_header = None
+            previous_reading = None
+            current_reading = None
+            displayed_readings_cnt = 0
+            skip_header = False
+            with open(resource_path, 'r', encoding='UTF-8') as file_r:
+                while True:
+                    line = file_r.readline()
+                    
+                    if not line:
+                        if displayed_readings_cnt == 0:
+                            print("     No speed change detected")
+                        break
+                    
+                    elif Header.is_header(line):
+                        if last_header and Header(line).datetime == last_header.datetime:
+                            continue
 
-                if not is_datetime_in_interval(header.datetime, datetime_start, datetime_end):
-                    continue
+                        elif not is_datetime_in_interval(Header(line).datetime, datetime_start, datetime_end):
+                            skip_header = True
+                            continue
+                        else:
+                            skip_header = False
 
-                header.display(raw=False, to_enumerate=True)
-
-                if len(headers_readings[header]) < 2:
-                    print("    No speed change detected")
-                    continue
-                else:
-                    for reading_index in range(len(headers_readings[header]) - 1):
-                        first_reading = headers_readings[header][reading_index]
-                        second_reading = headers_readings[header][reading_index + 1]
-                        acceleration = Calculator.calculate_acceleration(first_reading.speed_kmh, first_reading.millis_passed, second_reading.speed_kmh, second_reading.millis_passed)
-                        print(f"    [{enumeration}-{enumeration+1}] Acceleration: {round(acceleration, decimal_places)} m/s")
-                        enumeration += 1
-
+                        if last_header and displayed_readings_cnt == 0:
+                            print("     No speed change detected")
+                        last_header = Header(line)
+                        last_header.display(raw=False, to_enumerate=True)
+                        previous_reading = None
+                        displayed_readings_cnt = 0
+                    
+                    elif Reading.is_reading(line):
+                        if skip_header:
+                            continue
+                        current_reading = CountedReading(Reading(line), last_header.spokes_cnt, last_header.wheel_circ, last_header.max_voltage, last_header.save_delay)
+                        if previous_reading:
+                            acceleration = Calculator.calculate_acceleration(previous_reading.speed_kmh, previous_reading.millis_passed, current_reading.speed_kmh, current_reading.millis_passed)
+                            print(f"     [{displayed_readings_cnt+1}-{displayed_readings_cnt+2}] Acceleration: {round(acceleration, 2)} m/s^2")
+                            displayed_readings_cnt += 1
+                        previous_reading = current_reading
         else:
             logger.error("Calc mode not selected (--voltage-interval / --acceleration)")
             return

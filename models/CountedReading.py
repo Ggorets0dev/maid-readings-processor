@@ -1,4 +1,4 @@
-#pylint: disable=C0301 E0401
+#pylint: disable=C0301 E0401 E0611
 
 from datetime import time
 from models.Reading import Reading
