@@ -12,8 +12,6 @@ from tools.Calculator import Calculator
 class CalcSubParser:
     '''Calculations based on headers and readings'''
 
-    # TODO - Average acceleration (m/s^2)
-    # TODO - Average speed braking (m/s^2)
     # TODO - Average speed (km/h)
     # TODO - Travel time
 
@@ -25,7 +23,9 @@ class CalcSubParser:
         
         # NOTE - One of this targets must be specified
         check_subparser.add_argument('-vi', '--voltage-interval', action='store_true', help='Find minimal and maximal voltage')
-        check_subparser.add_argument('-ac', '--acceleration', action='store_true', help='Calculate the accelerations')
+        check_subparser.add_argument('-ac', '--accelerations', action='store_true', help='Calculate and display all available accelerations')
+        check_subparser.add_argument('-aa', '--average-acceleration', action='store_true', help='Calculate average speed boost (acceleration > 0)')
+        check_subparser.add_argument('-ad', '--average-deceleration', action='store_true', help='Calculate average speed decrease (acceleration < 0)')
 
         # NOTE - Modes of search and visualization
         check_subparser.add_argument('-d', '--date-time', nargs='+', type=str, help='Date and time on which to specify acceleration or voltage interval (specify two for the range) (dd.mm.yyyy or dd.mm.yyyy-hh:mm:ss)')
@@ -58,29 +58,34 @@ class CalcSubParser:
             logger.error("Used unavailable --accuracy, the value must be from 1 to 5 inclusive")
             return
 
-        # SECTION - Processing targets: --voltage-interval --acceleration
+        # SECTION - Processing targets: --voltage-interval --all-accelerations --average-acceleration --average-deceleration
         if namespace.voltage_interval:
             voltage_interval = Calculator.find_voltage_interval(resource_path, minimal_value, datetime_start, datetime_end)
             
-            if voltage_interval is not None:
+            if voltage_interval:
                 print(f"Minimal voltage: {round(voltage_interval['min'], decimal_places)}v\nMaximal voltage: {round(voltage_interval['max'], decimal_places)}v")
             else:
                 logger.info("No voltage interval was found for specified conditions")
                 return
 
-        elif namespace.acceleration:
+        # FIXME - Use until condition is maintained, not neighboring
+        elif namespace.accelerations:
             last_header = None
             previous_reading = None
             current_reading = None
             displayed_readings_cnt = 0
+            displayed_headers_cnt = 0
             skip_header = False
+            
             with open(resource_path, 'r', encoding='UTF-8') as file_r:
                 while True:
                     line = file_r.readline()
                     
                     if not line:
-                        if displayed_readings_cnt == 0:
+                        if displayed_readings_cnt == 0 and displayed_headers_cnt != 0:
                             print("     No speed change detected")
+                        elif displayed_headers_cnt == 0:
+                            logger.info("No accelerations and decelerations were found for specified conditions")
                         break
                     
                     elif Header.is_header(line):
@@ -95,21 +100,41 @@ class CalcSubParser:
 
                         if last_header and displayed_readings_cnt == 0:
                             print("     No speed change detected")
+                        
                         last_header = Header(line)
                         last_header.display(raw=False, to_enumerate=True)
+                        displayed_headers_cnt += 1
                         previous_reading = None
                         displayed_readings_cnt = 0
                     
                     elif Reading.is_reading(line):
-                        if skip_header:
-                            continue
-                        current_reading = CountedReading(Reading(line), last_header.spokes_cnt, last_header.wheel_circ, last_header.max_voltage, last_header.save_delay)
-                        if previous_reading:
-                            acceleration = Calculator.calculate_acceleration(previous_reading.speed_kmh, previous_reading.millis_passed, current_reading.speed_kmh, current_reading.millis_passed)
-                            print(f"     [{displayed_readings_cnt+1}-{displayed_readings_cnt+2}] Acceleration: {round(acceleration, 2)} m/s^2")
-                            displayed_readings_cnt += 1
-                        previous_reading = current_reading
+                        if not skip_header:
+                            current_reading = CountedReading(Reading(line), last_header.spokes_cnt, last_header.wheel_circ, last_header.max_voltage, last_header.save_delay)
+                            if previous_reading:
+                                acceleration = Calculator.calculate_acceleration(previous_reading.speed_kmh, previous_reading.millis_passed, current_reading.speed_kmh, current_reading.millis_passed)
+                                print(f"     [{displayed_readings_cnt+1}-{displayed_readings_cnt+2}] Acceleration: {round(acceleration, 2)} m/s^2")
+                                displayed_readings_cnt += 1
+                            previous_reading = current_reading
+        
+        # FIXME - Use until condition is maintained, not neighboring
+        elif namespace.average_acceleration:
+            average_acceleration = Calculator.find_average_acceleration(file_path=resource_path, increase=True, datetime_start=datetime_start, datetime_end=datetime_end)
+
+            if average_acceleration:
+                print(f"Average acceleration: {round(average_acceleration, decimal_places)} m/s^2")
+            else:
+                logger.info("No accelerations were found for specified conditions")
+
+        # FIXME - Use until condition is maintained, not neighboring    
+        elif namespace.average_deceleration:
+            average_deceleration = Calculator.find_average_acceleration(file_path=resource_path, increase=False, datetime_start=datetime_start, datetime_end=datetime_end)
+
+            if average_deceleration:
+                print(f"Average deceleration: {round(average_deceleration, decimal_places)} m/s^2")
+            else:
+                logger.info("No decelerations were found for specified conditions")
+
         else:
-            logger.error("Calc mode not selected (--voltage-interval / --acceleration)")
+            logger.error("Calculation target not selected (--voltage-interval / --all-accelerations / --average-acceleration / --average-deceleration)")
             return
         # !SECTION
