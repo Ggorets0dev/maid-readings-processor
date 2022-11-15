@@ -3,12 +3,12 @@
 '''
 marp - MaidReadingsProcessor (Maid Software's processing utility)
 Written by Ggorets0dev (nikgorets4work@gmail.com)
-Version: 0.16.0
+Version: 0.17.0
 GitHub: https://github.com/Ggorets0dev/maid-readings-processor
 License: MIT
 '''
 
-__VERSION__ = "0.16.0"
+__VERSION__ = "0.17.0"
 
 import sys
 import pyfiglet
@@ -35,22 +35,22 @@ if __name__ == "__main__":
         print("GitHub: https://github.com/Ggorets0dev/maid-readings-processor")
 
     # SECTION - Processing commands from subparsers
-    elif namespace.command == "show":
+    elif namespace.command == 'show':
         ShowSubParser.run_show(namespace)
     
-    elif namespace.command == "check":
+    elif namespace.command == 'check':
         CheckSubParser.run_check(namespace)
 
-    elif namespace.command == "reduce":
+    elif namespace.command == 'reduce':
         ReduceSubParser.run_reduce(namespace)
 
-    elif namespace.command == "calc":
+    elif namespace.command == 'calc':
         CalcSubParser.run_calc(namespace)
 
-    elif namespace.command == "templates":
+    elif namespace.command == 'templates':
         TemplatesSubParser.run_templates(namespace)
 
-    elif namespace.command == "split":
+    elif namespace.command == 'split':
         SplitSubParser.run_split(namespace)
     # !SECTION
 

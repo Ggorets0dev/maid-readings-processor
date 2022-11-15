@@ -6,13 +6,12 @@ from models.ReadableFile import ReadableFile
 from models.Header import Header
 from models.Reading import Reading
 from models.CountedReading import CountedReading
-from tools.additional_datetime_utils import try_parse_datetime, is_datetime_in_interval
 from tools.Calculator import Calculator
+from tools.additional_datetime_utils import try_parse_datetime, is_datetime_in_interval
 
 class CalcSubParser:
     '''Calculations based on headers and readings'''
 
-    # TODO - Average speed (km/h)
     # TODO - Travel time
 
     @staticmethod
@@ -26,11 +25,12 @@ class CalcSubParser:
         check_subparser.add_argument('-ac', '--accelerations', action='store_true', help='Calculate and display all available accelerations')
         check_subparser.add_argument('-aa', '--average-acceleration', action='store_true', help='Calculate average speed boost (acceleration > 0)')
         check_subparser.add_argument('-ad', '--average-deceleration', action='store_true', help='Calculate average speed decrease (acceleration < 0)')
+        check_subparser.add_argument('-as', '--average-speed', action='store_true', help='Calculate average speed')
 
         # NOTE - Modes of search and visualization
         check_subparser.add_argument('-d', '--date-time', nargs='+', type=str, help='Date and time on which to specify acceleration or voltage interval (specify two for the range) (dd.mm.yyyy or dd.mm.yyyy-hh:mm:ss)')
         check_subparser.add_argument('-m', '--minimal', nargs=1, type=int, help='Values below this will not be taken into account when searching for a voltage interval (default: 15)')
-        check_subparser.add_argument('-a', '--accuracy', nargs=1, type=int, help='Number of decimal places of the displayed values (default: 2, max: 5)')
+        check_subparser.add_argument('-a', '--accuracy', nargs=1, type=int, help='Number of decimal places of the displayed values (min: 1, max: 5, default: 2)')
         return subparsers
 
     @staticmethod
@@ -58,7 +58,7 @@ class CalcSubParser:
             logger.error("Used unavailable --accuracy, the value must be from 1 to 5 inclusive")
             return
 
-        # SECTION - Processing targets: --voltage-interval --all-accelerations --average-acceleration --average-deceleration
+        # SECTION - Processing targets: --voltage-interval --all-accelerations --average-acceleration --average-deceleration --average-speed
         if namespace.voltage_interval:
             voltage_interval = Calculator.find_voltage_interval(resource_path, minimal_value, datetime_start, datetime_end)
             
@@ -112,7 +112,7 @@ class CalcSubParser:
                             current_reading = CountedReading(Reading(line), last_header.spokes_cnt, last_header.wheel_circ, last_header.max_voltage, last_header.save_delay)
                             if previous_reading:
                                 acceleration = Calculator.calculate_acceleration(previous_reading.speed_kmh, previous_reading.millis_passed, current_reading.speed_kmh, current_reading.millis_passed)
-                                print(f"     [{displayed_readings_cnt+1}-{displayed_readings_cnt+2}] Acceleration: {round(acceleration, 2)} m/s^2")
+                                print(f"     [{previous_reading.millis_passed}-{current_reading.millis_passed}ms] Acceleration: {round(acceleration, 2)} m/s^2")
                                 displayed_readings_cnt += 1
                             previous_reading = current_reading
         
@@ -134,7 +134,14 @@ class CalcSubParser:
             else:
                 logger.info("No decelerations were found for specified conditions")
 
+        elif namespace.average_speed:
+            average_speed = Calculator.find_average_speed(file_path=resource_path, datetime_start=datetime_start, datetime_end=datetime_end)
+
+            if average_speed:
+                print(f"Average speed: {round(average_speed, 2)} km/h")
+            else:
+                logger.info("No speed readings were found for specified conditions")
         else:
-            logger.error("Calculation target not selected (--voltage-interval / --all-accelerations / --average-acceleration / --average-deceleration)")
+            logger.error("Calculation target not selected (--voltage-interval / --all-accelerations / --average-acceleration / --average-deceleration / --average-speed)")
             return
         # !SECTION
