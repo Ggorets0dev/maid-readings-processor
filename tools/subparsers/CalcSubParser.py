@@ -12,7 +12,7 @@ from tools.additional_datetime_utils import try_parse_datetime, is_datetime_in_i
 class CalcSubParser:
     '''Calculations based on headers and readings'''
 
-    # TODO - Travel time
+    # TODO - Travel distance
 
     @staticmethod
     def add_subparser(subparsers : _SubParsersAction) -> _SubParsersAction:
@@ -26,6 +26,8 @@ class CalcSubParser:
         check_subparser.add_argument('-aa', '--average-acceleration', action='store_true', help='Calculate average speed boost (acceleration > 0)')
         check_subparser.add_argument('-ad', '--average-deceleration', action='store_true', help='Calculate average speed decrease (acceleration < 0)')
         check_subparser.add_argument('-as', '--average-speed', action='store_true', help='Calculate average speed')
+        check_subparser.add_argument('-td', '--travel-distance', action='store_true', help='Number of kilometers traveled')
+        check_subparser.add_argument('-tt', '--travel-time', action='store_true', help='Find travel time in minutes')
 
         # NOTE - Modes of search and visualization
         check_subparser.add_argument('-d', '--date-time', nargs='+', type=str, help='Date and time on which to specify acceleration or voltage interval (specify two for the range) (dd.mm.yyyy or dd.mm.yyyy-hh:mm:ss)')
@@ -58,9 +60,9 @@ class CalcSubParser:
             logger.error("Used unavailable --accuracy, the value must be from 1 to 5 inclusive")
             return
 
-        # SECTION - Processing targets: --voltage-interval --all-accelerations --average-acceleration --average-deceleration --average-speed
+        # SECTION - Processing targets: --voltage-interval --all-accelerations --average-acceleration --average-deceleration --average-speed --travel-time --travel-distance
         if namespace.voltage_interval:
-            voltage_interval = Calculator.find_voltage_interval(resource_path, minimal_value, datetime_start, datetime_end)
+            voltage_interval = Calculator.get_voltage_interval(resource_path, minimal_value, datetime_start, datetime_end)
             
             if voltage_interval:
                 print(f"Minimal voltage: {round(voltage_interval['min'], decimal_places)}v\nMaximal voltage: {round(voltage_interval['max'], decimal_places)}v")
@@ -118,7 +120,7 @@ class CalcSubParser:
         
         # FIXME - Use until condition is maintained, not neighboring
         elif namespace.average_acceleration:
-            average_acceleration = Calculator.find_average_acceleration(file_path=resource_path, increase=True, datetime_start=datetime_start, datetime_end=datetime_end)
+            average_acceleration = Calculator.get_average_acceleration(file_path=resource_path, increase=True, datetime_start=datetime_start, datetime_end=datetime_end)
 
             if average_acceleration:
                 print(f"Average acceleration: {round(average_acceleration, decimal_places)} m/s^2")
@@ -127,7 +129,7 @@ class CalcSubParser:
 
         # FIXME - Use until condition is maintained, not neighboring    
         elif namespace.average_deceleration:
-            average_deceleration = Calculator.find_average_acceleration(file_path=resource_path, increase=False, datetime_start=datetime_start, datetime_end=datetime_end)
+            average_deceleration = Calculator.get_average_acceleration(file_path=resource_path, increase=False, datetime_start=datetime_start, datetime_end=datetime_end)
 
             if average_deceleration:
                 print(f"Average deceleration: {round(average_deceleration, decimal_places)} m/s^2")
@@ -135,13 +137,22 @@ class CalcSubParser:
                 logger.info("No decelerations were found for specified conditions")
 
         elif namespace.average_speed:
-            average_speed = Calculator.find_average_speed(file_path=resource_path, datetime_start=datetime_start, datetime_end=datetime_end)
+            average_speed = Calculator.get_average_speed(file_path=resource_path, datetime_start=datetime_start, datetime_end=datetime_end)
 
             if average_speed:
                 print(f"Average speed: {round(average_speed, 2)} km/h")
             else:
                 logger.info("No speed readings were found for specified conditions")
+        
+        elif namespace.travel_time:
+            travel_time = Calculator.get_travel_time(file_path=resource_path, datetime_start=datetime_start, datetime_end=datetime_end)
+
+            if travel_time:
+                print(f"Travel time: {round(travel_time, decimal_places)} min")
+            else:
+                logger.info("No travel time was found for specified conditions")
+
         else:
-            logger.error("Calculation target not selected (--voltage-interval / --all-accelerations / --average-acceleration / --average-deceleration / --average-speed)")
+            logger.error("Calculation target not selected (--voltage-interval / --all-accelerations / --average-acceleration / --average-deceleration / --average-speed / --travel-time / --travel-distance)")
             return
         # !SECTION

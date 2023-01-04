@@ -22,18 +22,19 @@ class SplitSubParser:
     @staticmethod
     def run_split(namespace : Namespace) -> None:
         '''Run if Split subparser was called'''
-        lines_cnt = FileParser.count_lines(file_path=namespace.input[0].name)
+        resource_path = namespace.input[0].name
+        lines_cnt = FileParser.count_lines(file_path=resource_path)
 
         # SECTION - Processing targets: --parts --lines
         if namespace.parts:
             if namespace.parts[0] >= 2 and namespace.parts[0] <= 1000 and namespace.parts[0] < lines_cnt:
                 part_size = int(lines_cnt / namespace.parts[0])
-                created_parts_cnt = FileParser.split_file(file_path=namespace.input[0].name, part_size=part_size)
+                created_parts_cnt = FileParser.split_file(file_path=resource_path, part_size=part_size)
                 
                 if created_parts_cnt != namespace.parts[0]:
-                    logger.warning(f"File {namespace.input[0].name} could not be divided into {namespace.parts[0]} parts, because there were fewer headers, {created_parts_cnt} files were created")
+                    logger.warning(f"File {resource_path} could not be divided into {namespace.parts[0]} parts, because there were fewer headers, {created_parts_cnt} files were created")
                 else:
-                    logger.success(f"File {namespace.input[0].name} was divided to {created_parts_cnt} parts")
+                    logger.success(f"File {resource_path} was divided to {created_parts_cnt} parts")
             else:
                 logger.error(f"Count of --parts must be more than 1 and less than count of lines in file ({lines_cnt}) and 1000")
                 return
@@ -42,12 +43,12 @@ class SplitSubParser:
         elif namespace.lines:
             if namespace.lines[0] >= 2 and namespace.lines[0] < lines_cnt:
                 part_size = namespace.lines[0]
-                created_parts_cnt = FileParser.split_file(file_path=namespace.input[0].name, part_size=part_size)
+                created_parts_cnt = FileParser.split_file(file_path=resource_path, part_size=part_size)
 
                 if created_parts_cnt != lines_cnt / namespace.lines[0] and lines_cnt % namespace.lines[0] == 0:
                     logger.warning(f"File could not be divided into parts with {namespace.lines[0]} lines in every file, because there were fewer headers, {created_parts_cnt} files were created")
                 else:
-                    logger.success(f"File {namespace.input[0].name} was divided to {created_parts_cnt} parts")
+                    logger.success(f"File {resource_path} was divided to {created_parts_cnt} parts")
             else:
                 logger.error(f"Count of --lines must be more than 1 and less than count of lines in file ({lines_cnt})")
                 return

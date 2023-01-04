@@ -21,7 +21,7 @@ class Calculator:
         return headers_readings
 
     @staticmethod
-    def find_voltage_interval(file_path : str, minimal_voltage : int, datetime_start : datetime, datetime_end : datetime) -> dict[str, float]:
+    def get_voltage_interval(file_path : str, minimal_voltage : int, datetime_start : datetime, datetime_end : datetime) -> dict[str, float]:
         '''Find minimal and maximal voltage in requested file'''
         interval = { 'min': 1000.0, 'max': -1.0 }
         line = ''
@@ -66,7 +66,7 @@ class Calculator:
         return delta_speed / delta_time
 
     @staticmethod
-    def find_average_acceleration(file_path : str, increase : bool, datetime_start : datetime, datetime_end : datetime) -> float:
+    def get_average_acceleration(file_path : str, increase : bool, datetime_start : datetime, datetime_end : datetime) -> float:
         '''Find average speed boost or decrease (m/s^2)'''
         acceleration_cnt = 0
         acceleration_sum = 0
@@ -94,6 +94,7 @@ class Calculator:
                     elif not is_datetime_in_interval(current_header.datetime, datetime_start, datetime_end):
                         skip_header = True
                         continue
+                    
                     else:
                         skip_header = False
 
@@ -119,7 +120,7 @@ class Calculator:
             return None
 
     @staticmethod
-    def find_average_speed(file_path : str, datetime_start : datetime, datetime_end : datetime) -> float:
+    def get_average_speed(file_path : str, datetime_start : datetime, datetime_end : datetime) -> float:
         '''Find average speed (km/h)'''
         speed_cnt = 0
         speed_sum = 0
@@ -145,6 +146,7 @@ class Calculator:
                     elif not is_datetime_in_interval(current_header.datetime, datetime_start, datetime_end):
                         skip_header = True
                         continue
+                    
                     else:
                         skip_header = False
 
@@ -156,7 +158,54 @@ class Calculator:
                         speed_cnt += 1
                         speed_sum += current_reading.speed_kmh
             
-            if speed_cnt != 0 and speed_sum != 0:
-                return speed_sum / speed_cnt
-            else:
-                return None
+        if speed_cnt != 0 and speed_sum != 0:
+            return speed_sum / speed_cnt
+        else:
+            return None
+
+    @staticmethod
+    def get_travel_time(file_path : str, datetime_start : datetime, datetime_end : datetime) -> float:
+        '''Find travel time (min)'''
+        time_sum = 0
+        last_header = None
+        previous_reading = None
+        current_reading = None
+        skip_header = False
+
+        if not os.path.isfile(file_path):
+            raise ResourceNotFoundError(file_path)
+
+        with open(file_path, 'r', encoding='UTF-8') as file_r:
+            while True:
+                line = file_r.readline()
+
+                if not line:
+                    break
+
+                elif Header.is_header(line):
+                    current_header = Header(line)
+                    
+                    if last_header and current_header.datetime == last_header.datetime:
+                        continue
+
+                    elif not is_datetime_in_interval(current_header.datetime, datetime_start, datetime_end):
+                        skip_header = True
+                        continue
+                    
+                    else:
+                        skip_header = False
+
+                    last_header = current_header
+                    previous_reading = None
+                                
+                elif Reading.is_reading(line):
+                    if not skip_header:
+                        current_reading = Reading(line)
+                        if previous_reading:
+                            time_sum += (current_reading.millis_passed - previous_reading.millis_passed) / (1000 * 60)
+                        previous_reading = current_reading
+        
+        if time_sum != 0:
+            return time_sum
+        else:
+            return None

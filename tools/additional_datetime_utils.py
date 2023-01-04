@@ -13,7 +13,7 @@ def is_datetime(datetime_str : str) -> bool:
         return False
 
 def try_parse_datetime(datetime_str : str) -> datetime:
-    '''Try parse str to date using pattern dd.mm.yyyy_HH:MM:ss'''
+    '''Try parse str to date using pattern dd.mm.yyyy-hh:mm:ss or dd.mm.yyyy'''
     try:
         datetime_requested = datetime.strptime(datetime_str, '%d.%m.%Y-%H:%M:%S')
     except ValueError:
