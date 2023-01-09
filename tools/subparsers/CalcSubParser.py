@@ -10,6 +10,7 @@ from models.Reading import Reading
 from models.CountedReading import CountedReading
 from tools.Calculator import Calculator
 from tools.additional_datetime_utils import try_parse_datetime, is_datetime_in_interval, get_time
+from tools.text_formatting_utils import cprint, colorize
 
 class CalcSubParser:
     '''Calculations based on headers and readings'''
@@ -92,7 +93,7 @@ class CalcSubParser:
                             CalcSubParser.show_acceleration(first_reading, last_reading, last_header, decimal_places)
                             displayed_readings_cnt += 1
                         elif displayed_readings_cnt == 0 and displayed_headers_cnt != 0:
-                            print(f"     {Fore.RED}{Style.BRIGHT}No speed change detected{Style.RESET_ALL}")
+                            cprint(msg="     No speed change detected", fore=Fore.RED, style=Style.BRIGHT)
                         elif displayed_headers_cnt == 0:
                             logger.info("No accelerations and decelerations were found for specified conditions")
                         break
@@ -111,7 +112,7 @@ class CalcSubParser:
                             skip_header = False
 
                         if last_header and displayed_readings_cnt == 0:
-                            print(f"     {Fore.RED}{Style.BRIGHT}No speed change detected{Style.RESET_ALL}")
+                            cprint(msg="     No speed change detected", fore=Fore.RED, style=Style.BRIGHT)
                         
                         last_header = Header(line)
                         last_header.display(time=False)
@@ -190,11 +191,10 @@ class CalcSubParser:
         first_reading.time = get_time(last_header.datetime, first_reading.millis_passed)
         last_reading.time = get_time(last_header.datetime, last_reading.millis_passed)
         
-        if acceleration < 0:
-            acceleration_color = Fore.RED
-        elif acceleration > 0:
-            acceleration_color = Fore.GREEN
-        else:
-            acceleration_color = Fore.YELLOW
+        acceleration_color = Fore.GREEN if acceleration >= 0 else Fore.RED
 
-        print(f"{Fore.CYAN}{Style.BRIGHT}     [{first_reading.time.strftime('%H:%M:%S:%f')} --> {last_reading.time.strftime('%H:%M:%S:%f')}]{Style.RESET_ALL} Acceleration: {acceleration_color}{Style.BRIGHT}{round(acceleration, decimal_places)} m/s^2{Style.RESET_ALL}")
+        time_colored = colorize(msg=f"[{first_reading.time.strftime('%H:%M:%S:%f')} --> {last_reading.time.strftime('%H:%M:%S:%f')}]", fore=Fore.CYAN, style=Style.BRIGHT)
+        acceleration_colored = colorize(msg=str(round(acceleration, decimal_places)), fore=acceleration_color, style=Style.BRIGHT)
+
+        print(f"     {time_colored} Acceleration: {acceleration_colored} m/s^2")
+        

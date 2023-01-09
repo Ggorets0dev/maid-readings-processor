@@ -1,5 +1,7 @@
 #pylint: disable=E0401 E0611 W0707 C0200
 
+'''Additional functions for time and date manipulation'''
+
 from datetime import datetime, timedelta, time
 from models.exceptions import InvalidDateTimePassedError
 

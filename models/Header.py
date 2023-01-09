@@ -1,17 +1,17 @@
-#pylint: disable=E0401 E0611 W0707
+#pylint: disable=E0401 E0611 W0707 C0301
 
 from datetime import datetime
-from tools.additional_datetime_utils import is_datetime
 from colorama import Fore, Style
+from tools.additional_datetime_utils import is_datetime
+from tools.text_formatting_utils import cprint
 class Header:
     '''Header that is read from the file'''
 
     display_cnt = 1
-    PATTERN = "{H} str[date_time] ( int[spokes_count] | int[wheel_circumference] | float[save_delay] | int[max_voltage] )"
+    PATTERN = "{H} datetime[datetime] ( int[spokes_count] | int[wheel_circumference] | float[save_delay] | int[max_voltage] )"
 
     def __init__(self, header : str) -> None:
         header_parts = header.split(' ')
-        
         self.datetime = datetime.strptime(header_parts[1], '%d.%m.%Y-%H:%M:%S')
         self.spokes_cnt = int(header_parts[3])
         self.wheel_circ = int(header_parts[5])
@@ -20,10 +20,7 @@ class Header:
 
     def display(self, raw=False, to_enumerate=False, time=True) -> None:
         '''Displaying Header in different modes'''
-        header = f"{Fore.WHITE}{Style.BRIGHT}"
-
-        if to_enumerate:
-            header += f"{Header.display_cnt}) "
+        header = f"{Header.display_cnt}) " if to_enumerate else ""
         
         if raw:
             header += f"{self.datetime.strftime('%d.%m.%Y-%H:%M:%S')} ( {self.spokes_cnt} | {self.wheel_circ} | {self.max_voltage} | {self.save_delay} )"
@@ -32,9 +29,8 @@ class Header:
         else:
             header += f"datetime: {self.datetime.strftime('%d.%m.%Y-%H:%M:%S')} | config: [spokes count: {self.spokes_cnt}, wheel circumfulence: {self.wheel_circ}mm, max_voltage: {self.max_voltage}v, save delay: {self.save_delay}s]"
        
-        header += f"{Style.RESET_ALL}"
+        cprint(msg=header, fore=Fore.WHITE, style=Style.BRIGHT)
         Header.display_cnt += 1
-        print(header)
 
     @staticmethod
     def display_list(headers : list, raw=False, to_enumerate=False) -> None:
