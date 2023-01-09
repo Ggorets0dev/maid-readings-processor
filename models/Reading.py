@@ -10,7 +10,7 @@ class Reading:
         self.impulse_cnt = int(reading_parts[3])
         self.analog_voltage = int(reading_parts[5].replace('\n', ''))
    
-    def display(self, raw : bool, to_enumerate : bool) -> None:
+    def display(self, raw=False, to_enumerate=False) -> None:
         '''Displaying Reading in different modes'''
         reading = f"{Reading.display_cnt}) " if to_enumerate else ""
         
@@ -23,7 +23,7 @@ class Reading:
         print(reading)
 
     @staticmethod
-    def display_list(readings : list, raw : bool, to_enumerate : bool) -> None:
+    def display_list(readings : list, raw=False, to_enumerate=False) -> None:
         '''Display amount of Readings'''
         for reading in readings:
             reading.display(raw=raw, to_enumerate=to_enumerate)

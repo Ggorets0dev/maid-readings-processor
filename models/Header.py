@@ -2,7 +2,7 @@
 
 from datetime import datetime
 from tools.additional_datetime_utils import is_datetime
-
+from colorama import Fore, Style
 class Header:
     '''Header that is read from the file'''
 
@@ -18,20 +18,26 @@ class Header:
         self.max_voltage = int(header_parts[7])
         self.save_delay = float(header_parts[9])
 
-    def display(self, raw : bool, to_enumerate : bool) -> None:
+    def display(self, raw=False, to_enumerate=False, time=True) -> None:
         '''Displaying Header in different modes'''
-        header = f"{Header.display_cnt}) " if to_enumerate else ""
+        header = f"{Fore.WHITE}{Style.BRIGHT}"
+
+        if to_enumerate:
+            header += f"{Header.display_cnt}) "
         
-        if not raw:
-            header += f"datetime: {self.datetime.strftime('%d.%m.%Y-%H:%M:%S')} | config: [spokes count: {self.spokes_cnt}, wheel circumfulence: {self.wheel_circ}mm, max_voltage: {self.max_voltage}v, save delay: {self.save_delay}s]"
-        else:
+        if raw:
             header += f"{self.datetime.strftime('%d.%m.%Y-%H:%M:%S')} ( {self.spokes_cnt} | {self.wheel_circ} | {self.max_voltage} | {self.save_delay} )"
+        elif not time:
+            header += f"datetime: {self.datetime.strftime('%d.%m.%Y')} | config: [spokes count: {self.spokes_cnt}, wheel circumfulence: {self.wheel_circ}mm, max_voltage: {self.max_voltage}v, save delay: {self.save_delay}s]"
+        else:
+            header += f"datetime: {self.datetime.strftime('%d.%m.%Y-%H:%M:%S')} | config: [spokes count: {self.spokes_cnt}, wheel circumfulence: {self.wheel_circ}mm, max_voltage: {self.max_voltage}v, save delay: {self.save_delay}s]"
        
+        header += f"{Style.RESET_ALL}"
         Header.display_cnt += 1
         print(header)
 
     @staticmethod
-    def display_list(headers : list, raw : bool, to_enumerate : bool) -> None:
+    def display_list(headers : list, raw=False, to_enumerate=False) -> None:
         '''Display amount of Headers'''
         for header in headers:
             header.display(raw=raw, to_enumerate=to_enumerate)

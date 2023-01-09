@@ -1,8 +1,7 @@
 #pylint: disable=E0401 E0611 W0707 C0200
 
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, time
 from models.exceptions import InvalidDateTimePassedError
-from models.CountedReading import CountedReading
 
 def is_datetime(datetime_str : str) -> bool:
     '''Return whether the string can be interpreted as a datetime'''
@@ -38,15 +37,8 @@ def is_datetime_in_interval(datetime_check : datetime, datetime_start : datetime
 
     return passed_by_start_date and passed_by_end_date
 
-def set_time(header_datetime : datetime, counted_readings : list[CountedReading]) -> list[CountedReading]:
+def get_time(header_datetime : datetime, reading_millis_passed : int) -> time:
     '''Converting milliseconds to real time based on Header's datetime'''
-    date_temp = header_datetime.date()
-    for i in range(len(counted_readings)):
-        if i == 0:
-            counted_readings[i].time = header_datetime.time()
-        else:
-            millis_delta = counted_readings[i].millis_passed - counted_readings[i-1].millis_passed
-            datetime_temp = datetime.combine(date_temp, counted_readings[i-1].time)
-            datetime_temp += timedelta(milliseconds=millis_delta)
-            counted_readings[i].time = datetime_temp.time()
-    return counted_readings
+    new_datetime = header_datetime + timedelta(milliseconds=reading_millis_passed)
+    return new_datetime.time()
+    

@@ -6,7 +6,7 @@ from models.exceptions import ResourceNotFoundError
 from models.Header import Header
 from models.CountedReading import CountedReading
 from models.Reading import Reading
-from tools.additional_datetime_utils import set_time, is_datetime_in_interval
+from tools.additional_datetime_utils import get_time, is_datetime_in_interval
 
 class Calculator:
     '''Operations with Headers and Readings from file or memory'''
@@ -17,7 +17,8 @@ class Calculator:
         for header in headers_readings:
             for i in range(len(headers_readings[header])):
                 headers_readings[header][i] = CountedReading(headers_readings[header][i], header.spokes_cnt, header.wheel_circ, header.max_voltage, header.save_delay)
-            headers_readings[header] = set_time(header.datetime, headers_readings[header])
+            for reading in headers_readings[header]:
+                reading.time = get_time(header.datetime, reading.millis_passed)
         return headers_readings
 
     @staticmethod
@@ -165,11 +166,10 @@ class Calculator:
 
     @staticmethod
     def get_travel_time(file_path : str, datetime_start : datetime, datetime_end : datetime) -> float:
-        '''Find travel time (min)'''
-        time_sum = 0
-        last_header = None
-        previous_reading = None
-        current_reading = None
+        '''Find travel time (sec)'''
+        time_sum_sec = 0
+        current_header = None
+        last_reading = None
         skip_header = False
 
         if not os.path.isfile(file_path):
@@ -180,32 +180,29 @@ class Calculator:
                 line = file_r.readline()
 
                 if not line:
+                    if last_reading:
+                        time_sum_sec += (last_reading.millis_passed / 1000)
                     break
 
                 elif Header.is_header(line):
-                    current_header = Header(line)
-                    
-                    if last_header and current_header.datetime == last_header.datetime:
-                        continue
+                    if last_reading:
+                        time_sum_sec += (last_reading.millis_passed / 1000)
 
-                    elif not is_datetime_in_interval(current_header.datetime, datetime_start, datetime_end):
+                    current_header = Header(line)
+                    last_reading = None
+
+                    if not is_datetime_in_interval(current_header.datetime, datetime_start, datetime_end):
                         skip_header = True
                         continue
                     
                     else:
                         skip_header = False
-
-                    last_header = current_header
-                    previous_reading = None
                                 
                 elif Reading.is_reading(line):
                     if not skip_header:
-                        current_reading = Reading(line)
-                        if previous_reading:
-                            time_sum += (current_reading.millis_passed - previous_reading.millis_passed) / (1000 * 60)
-                        previous_reading = current_reading
+                        last_reading = Reading(line)
         
-        if time_sum != 0:
-            return time_sum
+        if time_sum_sec != 0:
+            return time_sum_sec
         else:
             return None

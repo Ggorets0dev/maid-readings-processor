@@ -3,12 +3,12 @@
 '''
 marp - MaidReadingsProcessor (Maid Software's processing utility)
 Written by Ggorets0dev (nikgorets4work@gmail.com)
-Version: 0.18.0
+Version: 0.19.0
 GitHub: https://github.com/Ggorets0dev/maid-readings-processor
 License: MIT
 '''
 
-__VERSION__ = "0.18.0"
+__VERSION__ = "0.19.0"
 
 import sys
 import pyfiglet
@@ -20,6 +20,10 @@ from tools.subparsers.ReduceSubParser import ReduceSubParser
 from tools.subparsers.CalcSubParser import CalcSubParser
 from tools.subparsers.TemplatesSubParser import TemplatesSubParser
 from tools.subparsers.SplitSubParser import SplitSubParser
+from colorama import init
+
+# NOTE - Colorama initialization
+init()
 
 # NOTE - Assigning a more user-friendly exception output 
 sys.excepthook = user_exception_hook

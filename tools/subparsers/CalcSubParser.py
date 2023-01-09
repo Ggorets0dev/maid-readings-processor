@@ -1,13 +1,15 @@
 #pylint: disable=C0303 C0301 E0401 E0611
 
+from copy import copy
 from argparse import _SubParsersAction, Namespace
+from colorama import Fore, Style
 from loguru import logger
 from models.ReadableFile import ReadableFile
 from models.Header import Header
 from models.Reading import Reading
 from models.CountedReading import CountedReading
 from tools.Calculator import Calculator
-from tools.additional_datetime_utils import try_parse_datetime, is_datetime_in_interval
+from tools.additional_datetime_utils import try_parse_datetime, is_datetime_in_interval, get_time
 
 class CalcSubParser:
     '''Calculations based on headers and readings'''
@@ -26,7 +28,7 @@ class CalcSubParser:
         check_subparser.add_argument('-aa', '--average-acceleration', action='store_true', help='Calculate average speed boost (acceleration > 0)')
         check_subparser.add_argument('-ad', '--average-deceleration', action='store_true', help='Calculate average speed decrease (acceleration < 0)')
         check_subparser.add_argument('-as', '--average-speed', action='store_true', help='Calculate average speed')
-        check_subparser.add_argument('-td', '--travel-distance', action='store_true', help='Number of kilometers traveled')
+        # check_subparser.add_argument('-td', '--travel-distance', action='store_true', help='Number of kilometers traveled')
         check_subparser.add_argument('-tt', '--travel-time', action='store_true', help='Find travel time in minutes')
 
         # NOTE - Modes of search and visualization
@@ -38,7 +40,6 @@ class CalcSubParser:
     @staticmethod
     def run_calc(namespace : Namespace) -> None:
         '''Run if Calc subparser was called'''
-
         resource_path = namespace.input[0].name
 
         # NOTE - Check if count of --date args is wrong
@@ -72,28 +73,37 @@ class CalcSubParser:
 
         # FIXME - Use until condition is maintained, not neighboring
         elif namespace.accelerations:
-            last_header = None
-            previous_reading = None
-            current_reading = None
             displayed_readings_cnt = 0
             displayed_headers_cnt = 0
+            last_header = None
+            first_reading = None
+            last_reading = None
+            buffer_reading = None
             skip_header = False
-            
+            increase = False
+            decrease = False
+
             with open(resource_path, 'r', encoding='UTF-8') as file_r:
                 while True:
                     line = file_r.readline()
                     
                     if not line:
-                        if displayed_readings_cnt == 0 and displayed_headers_cnt != 0:
-                            print("     No speed change detected")
+                        if first_reading and last_reading:
+                            CalcSubParser.show_acceleration(first_reading, last_reading, last_header, decimal_places)
+                            displayed_readings_cnt += 1
+                        elif displayed_readings_cnt == 0 and displayed_headers_cnt != 0:
+                            print(f"     {Fore.RED}{Style.BRIGHT}No speed change detected{Style.RESET_ALL}")
                         elif displayed_headers_cnt == 0:
                             logger.info("No accelerations and decelerations were found for specified conditions")
                         break
                     
                     elif Header.is_header(line):
+                        if first_reading and last_reading:
+                            CalcSubParser.show_acceleration(first_reading, last_reading, last_header, decimal_places)
+                            displayed_readings_cnt += 1
+                        
                         if last_header and Header(line).datetime == last_header.datetime:
                             continue
-
                         elif not is_datetime_in_interval(Header(line).datetime, datetime_start, datetime_end):
                             skip_header = True
                             continue
@@ -101,29 +111,45 @@ class CalcSubParser:
                             skip_header = False
 
                         if last_header and displayed_readings_cnt == 0:
-                            print("     No speed change detected")
+                            print(f"     {Fore.RED}{Style.BRIGHT}No speed change detected{Style.RESET_ALL}")
                         
                         last_header = Header(line)
-                        last_header.display(raw=False, to_enumerate=True)
+                        last_header.display(time=False)
                         displayed_headers_cnt += 1
-                        previous_reading = None
                         displayed_readings_cnt = 0
+                        first_reading = None
+                        last_reading = None
+                        buffer_reading = None
                     
                     elif Reading.is_reading(line):
-                        if not skip_header:
-                            current_reading = CountedReading(Reading(line), last_header.spokes_cnt, last_header.wheel_circ, last_header.max_voltage, last_header.save_delay)
-                            if previous_reading:
-                                acceleration = Calculator.calculate_acceleration(previous_reading.speed_kmh, previous_reading.millis_passed, current_reading.speed_kmh, current_reading.millis_passed)
-                                print(f"     [{previous_reading.millis_passed}-{current_reading.millis_passed}ms] Acceleration: {round(acceleration, 2)} m/s^2")
-                                displayed_readings_cnt += 1
-                            previous_reading = current_reading
+                        if not skip_header and last_header:
+                            if first_reading:
+                                buffer_reading = CountedReading(Reading(line), last_header.spokes_cnt, last_header.wheel_circ, last_header.max_voltage, last_header.save_delay)
+                                
+                                if ((buffer_reading.speed_kmh > first_reading.speed_kmh) and decrease) or ((buffer_reading.speed_kmh < first_reading.speed_kmh) and increase):
+                                    CalcSubParser.show_acceleration(first_reading, buffer_reading, last_header, decimal_places)
+                                    displayed_readings_cnt += 1
+                                    first_reading = copy(buffer_reading)
+                                
+                                else:
+                                    last_reading = copy(buffer_reading)
+
+                                    if (buffer_reading.speed_kmh > first_reading.speed_kmh):
+                                        increase = True
+
+                                    elif (buffer_reading.speed_kmh < first_reading.speed_kmh):
+                                        decrease = True
+
+                            else:
+                                first_reading = CountedReading(Reading(line), last_header.spokes_cnt, last_header.wheel_circ, last_header.max_voltage, last_header.save_delay)
+
         
         # FIXME - Use until condition is maintained, not neighboring
         elif namespace.average_acceleration:
             average_acceleration = Calculator.get_average_acceleration(file_path=resource_path, increase=True, datetime_start=datetime_start, datetime_end=datetime_end)
 
             if average_acceleration:
-                print(f"Average acceleration: {round(average_acceleration, decimal_places)} m/s^2")
+                print(f"{Fore.WHITE}{Style.BRIGHT}Average acceleration: {round(average_acceleration, decimal_places)} m/s^2{Style.RESET_ALL}")
             else:
                 logger.info("No accelerations were found for specified conditions")
 
@@ -132,7 +158,7 @@ class CalcSubParser:
             average_deceleration = Calculator.get_average_acceleration(file_path=resource_path, increase=False, datetime_start=datetime_start, datetime_end=datetime_end)
 
             if average_deceleration:
-                print(f"Average deceleration: {round(average_deceleration, decimal_places)} m/s^2")
+                print(f"{Fore.WHITE}{Style.BRIGHT}Average deceleration: {round(average_deceleration, decimal_places)} m/s^2S{Style.RESET_ALL}")
             else:
                 logger.info("No decelerations were found for specified conditions")
 
@@ -140,15 +166,15 @@ class CalcSubParser:
             average_speed = Calculator.get_average_speed(file_path=resource_path, datetime_start=datetime_start, datetime_end=datetime_end)
 
             if average_speed:
-                print(f"Average speed: {round(average_speed, 2)} km/h")
+                print(f"{Fore.WHITE}{Style.BRIGHT}Average speed: {round(average_speed, 2)} km/h{Style.RESET_ALL}")
             else:
                 logger.info("No speed readings were found for specified conditions")
         
         elif namespace.travel_time:
-            travel_time = Calculator.get_travel_time(file_path=resource_path, datetime_start=datetime_start, datetime_end=datetime_end)
+            travel_time_sec = Calculator.get_travel_time(file_path=resource_path, datetime_start=datetime_start, datetime_end=datetime_end)
 
-            if travel_time:
-                print(f"Travel time: {round(travel_time, decimal_places)} min")
+            if travel_time_sec:
+                print(f"{Fore.WHITE}{Style.BRIGHT}Travel time: {round(travel_time_sec / 60, decimal_places)} min{Style.RESET_ALL}")
             else:
                 logger.info("No travel time was found for specified conditions")
 
@@ -156,3 +182,19 @@ class CalcSubParser:
             logger.error("Calculation target not selected (--voltage-interval / --all-accelerations / --average-acceleration / --average-deceleration / --average-speed / --travel-time / --travel-distance)")
             return
         # !SECTION
+
+    @staticmethod
+    def show_acceleration(first_reading : CountedReading, last_reading : CountedReading, last_header : Header, decimal_places : int) -> None:
+        '''Output of acceleration between two CountedReading'''
+        acceleration = Calculator.calculate_acceleration(first_reading.speed_kmh, first_reading.millis_passed, last_reading.speed_kmh, last_reading.millis_passed)
+        first_reading.time = get_time(last_header.datetime, first_reading.millis_passed)
+        last_reading.time = get_time(last_header.datetime, last_reading.millis_passed)
+        
+        if acceleration < 0:
+            acceleration_color = Fore.RED
+        elif acceleration > 0:
+            acceleration_color = Fore.GREEN
+        else:
+            acceleration_color = Fore.YELLOW
+
+        print(f"{Fore.CYAN}{Style.BRIGHT}     [{first_reading.time.strftime('%H:%M:%S:%f')} --> {last_reading.time.strftime('%H:%M:%S:%f')}]{Style.RESET_ALL} Acceleration: {acceleration_color}{Style.BRIGHT}{round(acceleration, decimal_places)} m/s^2{Style.RESET_ALL}")

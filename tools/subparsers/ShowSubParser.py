@@ -19,8 +19,8 @@ class ShowSubParser:
         show_subparser.add_argument('-i', '--input', nargs=1, type=ReadableFile, required=True, help='Path to the file with readings')
         
         # NOTE - One of this targets must be specified
-        show_subparser.add_argument('-he', '--header', action='store_true', help='Display target: headers')
-        show_subparser.add_argument('-re', '--reading', action='store_true', help='Display target: readings')
+        show_subparser.add_argument('-he', '--header', action='store_true', help='Display the headers available by day (repetitions are ignored)')
+        show_subparser.add_argument('-re', '--reading', action='store_true', help='Display all available readings (use -c for processed readings)')
         show_subparser.add_argument('-lc', '--line-count', action='store_true', help='Display number of lines in file')
 
         # NOTE - Modes of visualisation
@@ -49,12 +49,12 @@ class ShowSubParser:
         # NOTE - Filling parameters with values or None if no arguments are used
         datetime_start = try_parse_datetime(namespace.date_time[0]) if namespace.date_time and len(namespace.date_time) >= 1 else None
         datetime_end = try_parse_datetime(namespace.date_time[1]) if namespace.date_time and len(namespace.date_time) == 2 else None
-        
+
         headers_readings = FileParser.parse_readings(file_path=resource_path)
 
         # NOTE - Use convertion of Reading to CountedReading with specified accuracy
         if namespace.calculate and namespace.reading:
-            if  namespace.calculate[0] > 0 and namespace.calculate[0] <= 5:
+            if namespace.calculate[0] > 0 and namespace.calculate[0] <= 5:
                 headers_readings = Calculator.convert_readings(headers_readings)
             else:
                 logger.error("Accuracy at --calculate must have a value between 1 and 5")
@@ -63,10 +63,18 @@ class ShowSubParser:
         # SECTION - Processing targets: --header --reading --date
         found_any = False
         if namespace.header:
+            last_header = None
             for header in headers_readings:
+                if last_header and last_header.datetime.date() == header.datetime.date():
+                    last_header = header
+                    continue
+                else:
+                    last_header = header
+                
                 if is_datetime_in_interval(header.datetime, datetime_start, datetime_end):
-                    header.display(raw=namespace.raw, to_enumerate=namespace.enumerate)
+                    header.display(raw=namespace.raw, to_enumerate=namespace.enumerate, time=False)
                     found_any = True
+            
             if not found_any:
                 logger.info('No headers was found on specified --datetime')
                 return
