@@ -1,5 +1,6 @@
 #pylint: disable=C0301 E0401 E0611
 
+from datetime import time
 from models.Reading import Reading
 
 class CountedReading:
@@ -9,7 +10,7 @@ class CountedReading:
     PATTERN = "{R} time[time] | int[millis_passed] | float[speed_kmh] | float[voltage_v]"
 
     def __init__(self, reading : Reading, spokes_cnt : int, wheel_circ : int, max_voltage : int, save_delay : float) -> None:
-        self.time = None
+        self.time = time(0, 0, 0)
         self.millis_passed = reading.millis_passed
         self.speed_kmh = CountedReading.calculate_speed(impulse_cnt=reading.impulse_cnt, spokes_cnt=spokes_cnt, wheel_circ=wheel_circ, save_delay=save_delay)
         self.voltage_v = CountedReading.calculate_voltage(analog_voltage=reading.analog_voltage, max_voltage=max_voltage)

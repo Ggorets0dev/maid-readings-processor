@@ -56,7 +56,7 @@ class Calculator:
         if interval['min'] != 1000.0 and interval['max'] != -1.0: # * Check if it's still initial value
             return interval
         else:
-            return None
+            return {}
 
     @staticmethod
     def calculate_acceleration(first_speed_kmh : float, first_time_ms : float, second_speed_kmh : float, second_time_ms : float) -> float:
@@ -118,7 +118,7 @@ class Calculator:
         if acceleration_cnt != 0 and acceleration_sum != 0:
             return acceleration_sum / acceleration_cnt
         else:
-            return None
+            return 0
 
     @staticmethod
     def get_average_speed(file_path : str, datetime_start : datetime, datetime_end : datetime) -> float:
@@ -162,7 +162,7 @@ class Calculator:
         if speed_cnt != 0 and speed_sum != 0:
             return speed_sum / speed_cnt
         else:
-            return None
+            return 0
 
     @staticmethod
     def get_travel_time(file_path : str, datetime_start : datetime, datetime_end : datetime) -> float:
@@ -202,7 +202,4 @@ class Calculator:
                     if not skip_header:
                         last_reading = Reading(line)
         
-        if time_sum_sec != 0:
-            return time_sum_sec
-        else:
-            return None
+        return time_sum_sec

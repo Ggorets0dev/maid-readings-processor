@@ -1,6 +1,7 @@
 #pylint: disable=C0303 C0301 E0401 E0611
 
 from copy import copy
+from datetime import datetime
 from argparse import _SubParsersAction, Namespace
 from colorama import Fore, Style
 from loguru import logger
@@ -33,7 +34,7 @@ class CalcSubParser:
         check_subparser.add_argument('-tt', '--travel-time', action='store_true', help='Find travel time in minutes')
 
         # NOTE - Modes of search and visualization
-        check_subparser.add_argument('-d', '--date-time', nargs='+', type=str, help='Date and time on which to specify acceleration or voltage interval (specify two for the range) (dd.mm.yyyy or dd.mm.yyyy-hh:mm:ss)')
+        check_subparser.add_argument('-d', '--datetime', nargs='+', type=str, help='Date and time on which to specify acceleration or voltage interval (specify two for the range) (dd.mm.yyyy or dd.mm.yyyy-hh:mm:ss)')
         check_subparser.add_argument('-m', '--minimal', nargs=1, type=int, help='Values below this will not be taken into account when searching for a voltage interval (default: 15)')
         check_subparser.add_argument('-a', '--accuracy', nargs=1, type=int, help='Number of decimal places of the displayed values (min: 1, max: 5, default: 2)')
         return subparsers
@@ -50,8 +51,8 @@ class CalcSubParser:
 
         # NOTE - Filling parameters with values or None if no arguments are used
         minimal_value = namespace.minimal[0] if namespace.minimal else 15
-        datetime_start = try_parse_datetime(namespace.date_time[0]) if namespace.date_time and len(namespace.date_time) >= 1 else None
-        datetime_end = try_parse_datetime(namespace.date_time[1]) if namespace.date_time and len(namespace.date_time) == 2 else None
+        datetime_start = try_parse_datetime(namespace.date_time[0]) if namespace.date_time and len(namespace.date_time) >= 1 else datetime(2000, 1, 1)
+        datetime_end = try_parse_datetime(namespace.date_time[1]) if namespace.date_time and len(namespace.date_time) == 2 else datetime(3000, 1, 1)
 
         # NOTE - Set calculation accuracy (arg or default=2)
         if not namespace.accuracy:
@@ -66,8 +67,8 @@ class CalcSubParser:
         if namespace.voltage_interval:
             voltage_interval = Calculator.get_voltage_interval(resource_path, minimal_value, datetime_start, datetime_end)
             
-            if voltage_interval:
-                print(f"Minimal voltage: {round(voltage_interval['min'], decimal_places)}v\nMaximal voltage: {round(voltage_interval['max'], decimal_places)}v")
+            if len(voltage_interval) != 0:
+                cprint(msg=f"Minimal voltage: {round(voltage_interval['min'], decimal_places)}v\nMaximal voltage: {round(voltage_interval['max'], decimal_places)}v", fore=Fore.WHITE, style=Style.BRIGHT)
             else:
                 logger.info("No voltage interval was found for specified conditions")
                 return
@@ -149,8 +150,8 @@ class CalcSubParser:
         elif namespace.average_acceleration:
             average_acceleration = Calculator.get_average_acceleration(file_path=resource_path, increase=True, datetime_start=datetime_start, datetime_end=datetime_end)
 
-            if average_acceleration:
-                print(f"{Fore.WHITE}{Style.BRIGHT}Average acceleration: {round(average_acceleration, decimal_places)} m/s^2{Style.RESET_ALL}")
+            if average_acceleration != 0:
+                cprint(msg=f"Average acceleration: {round(average_acceleration, decimal_places)} m/s^2", fore=Fore.WHITE, style=Style.BRIGHT)
             else:
                 logger.info("No accelerations were found for specified conditions")
 
@@ -158,24 +159,24 @@ class CalcSubParser:
         elif namespace.average_deceleration:
             average_deceleration = Calculator.get_average_acceleration(file_path=resource_path, increase=False, datetime_start=datetime_start, datetime_end=datetime_end)
 
-            if average_deceleration:
-                print(f"{Fore.WHITE}{Style.BRIGHT}Average deceleration: {round(average_deceleration, decimal_places)} m/s^2S{Style.RESET_ALL}")
+            if average_deceleration != 0:
+                cprint(msg=f"Average deceleration: {round(average_deceleration, decimal_places)} m/s^2", fore=Fore.WHITE, style=Style.BRIGHT)
             else:
                 logger.info("No decelerations were found for specified conditions")
 
         elif namespace.average_speed:
             average_speed = Calculator.get_average_speed(file_path=resource_path, datetime_start=datetime_start, datetime_end=datetime_end)
 
-            if average_speed:
-                print(f"{Fore.WHITE}{Style.BRIGHT}Average speed: {round(average_speed, 2)} km/h{Style.RESET_ALL}")
+            if average_speed !=0 :
+                cprint(msg=f"Average speed: {round(average_speed, decimal_places)} km/h", fore=Fore.WHITE, style=Style.BRIGHT)
             else:
                 logger.info("No speed readings were found for specified conditions")
         
         elif namespace.travel_time:
             travel_time_sec = Calculator.get_travel_time(file_path=resource_path, datetime_start=datetime_start, datetime_end=datetime_end)
 
-            if travel_time_sec:
-                print(f"{Fore.WHITE}{Style.BRIGHT}Travel time: {round(travel_time_sec / 60, decimal_places)} min{Style.RESET_ALL}")
+            if travel_time_sec != 0:
+                cprint(msg=f"Travel time: {round(travel_time_sec / 60, decimal_places)} min", fore=Fore.WHITE, style=Style.BRIGHT)
             else:
                 logger.info("No travel time was found for specified conditions")
 
@@ -191,7 +192,7 @@ class CalcSubParser:
         first_reading.time = get_time(last_header.datetime, first_reading.millis_passed)
         last_reading.time = get_time(last_header.datetime, last_reading.millis_passed)
         
-        acceleration_color = Fore.GREEN if acceleration >= 0 else Fore.RED
+        acceleration_color = Fore.GREEN if acceleration > 0 else (Fore.YELLOW if acceleration == 0 else Fore.RED)
 
         time_colored = colorize(msg=f"[{first_reading.time.strftime('%H:%M:%S:%f')} --> {last_reading.time.strftime('%H:%M:%S:%f')}]", fore=Fore.CYAN, style=Style.BRIGHT)
         acceleration_colored = colorize(msg=str(round(acceleration, decimal_places)), fore=acceleration_color, style=Style.BRIGHT)

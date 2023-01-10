@@ -44,7 +44,6 @@ class FileParser:
 
                     elif len(bad_lines_inxs) != 0:
                         logger.error(f"File {file_path} did not pass the validation, found inconsistencies with the time sequence in line(s) number: {', '.join(bad_lines_inxs)}")
-                        # print('failed time')
                         return False
                 
                 else:                    
@@ -82,7 +81,6 @@ class FileParser:
 
                 elif not line and len(bad_lines_inxs) != 0:
                     logger.error(f"File {file_path} did not pass the validation, found inconsistencies with the template in line(s) number: {', '.join(bad_lines_inxs)}")
-                    # print('failed pattern')
                     return False
 
                 elif line  == '\n' or line  == '':

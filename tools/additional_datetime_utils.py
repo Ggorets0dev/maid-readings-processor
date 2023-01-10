@@ -37,10 +37,11 @@ def is_datetime_in_interval(datetime_check : datetime, datetime_start : datetime
     if datetime_end:
         passed_by_end_date = datetime_check <= datetime_end
 
-    return passed_by_start_date and passed_by_end_date
+    return (passed_by_start_date and passed_by_end_date)
 
 def get_time(header_datetime : datetime, reading_millis_passed : int) -> time:
     '''Converting milliseconds to real time based on Header's datetime'''
     new_datetime = header_datetime + timedelta(milliseconds=reading_millis_passed)
-    return new_datetime.time()
+    new_time = new_datetime.time()
+    return new_time
     

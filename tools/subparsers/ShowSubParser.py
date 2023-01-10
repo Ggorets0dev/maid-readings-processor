@@ -1,6 +1,7 @@
 #pylint: disable=C0301 C0303 E0401 E0611
 
 from argparse import _SubParsersAction, Namespace
+from datetime import datetime
 from loguru import logger
 from tools.FileParser import FileParser
 from tools.Calculator import Calculator
@@ -47,8 +48,8 @@ class ShowSubParser:
             return
 
         # NOTE - Filling parameters with values or None if no arguments are used
-        datetime_start = try_parse_datetime(namespace.date_time[0]) if namespace.date_time and len(namespace.date_time) >= 1 else None
-        datetime_end = try_parse_datetime(namespace.date_time[1]) if namespace.date_time and len(namespace.date_time) == 2 else None
+        datetime_start = try_parse_datetime(namespace.date_time[0]) if namespace.date_time and len(namespace.date_time) >= 1 else datetime(2000, 1, 1)
+        datetime_end = try_parse_datetime(namespace.date_time[1]) if namespace.date_time and len(namespace.date_time) == 2 else datetime(3000, 1, 1)
 
         headers_readings = FileParser.parse_readings(file_path=resource_path)
 
