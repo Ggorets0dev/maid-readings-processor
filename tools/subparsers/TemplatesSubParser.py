@@ -1,12 +1,11 @@
 #pylint: disable=C0303 C0301 E0401 E0611
 
 from argparse import _SubParsersAction, Namespace
-from colorama import Fore, Style
 from loguru import logger
 from models.Reading import Reading
 from models.Header import Header
 from models.CountedReading import CountedReading
-from tools.text_formatting_utils import cprint
+from tools.display_utils import ConstantValueOutput
 
 class TemplatesSubParser:
     '''Displaying stitched patterns for headers and readings'''
@@ -25,19 +24,23 @@ class TemplatesSubParser:
         '''Run if Templates subparser was called'''
         logger.info("type[value] is used to denote a variable with special type")
 
-        print("\nData type notation:\nint - integer\nfloat - fractional\ntime - time (hours, minutes, seconds, milliseconds)\ndatetime - date and time (year, month, day + time)\n")
+        print("\nData type notation:\n" + 
+            "   int - integer\n" + 
+            "   float - fractional\n" + 
+            "   time - time (hours, minutes, seconds, milliseconds)\n" + 
+            "   datetime - date and time (year, month, day + time)\n")
 
         if not namespace.header and not namespace.reading and not namespace.calculated_reading:
-            cprint(msg=f"Header pattern: {Header.PATTERN}", fore=Fore.WHITE, style=Style.BRIGHT)
-            cprint(msg=f"Reading pattern: {Reading.PATTERN}", fore=Fore.WHITE, style=Style.BRIGHT)
-            cprint(msg=f"Calculated reading pattern: {CountedReading.PATTERN}", fore=Fore.WHITE, style=Style.BRIGHT)
+            ConstantValueOutput('Header pattern', Header.PATTERN).display()
+            ConstantValueOutput('Reading pattern', Reading.PATTERN).display()
+            ConstantValueOutput('Calculated reading pattern', CountedReading.PATTERN).display()
 
         if namespace.header:
-            cprint(msg=f"Header pattern: {Header.PATTERN}", fore=Fore.WHITE, style=Style.BRIGHT)
+            ConstantValueOutput('Header pattern', Header.PATTERN).display()
 
         if namespace.reading:
-            cprint(msg=f"Reading pattern: {Reading.PATTERN}", fore=Fore.WHITE, style=Style.BRIGHT)
+            ConstantValueOutput('Reading pattern', Reading.PATTERN).display()
         
         if namespace.calculated_reading:
-            cprint(msg=f"Calculated reading pattern: {CountedReading.PATTERN}", fore=Fore.WHITE, style=Style.BRIGHT)
+            ConstantValueOutput('Calculated reading pattern', CountedReading.PATTERN).display()
             

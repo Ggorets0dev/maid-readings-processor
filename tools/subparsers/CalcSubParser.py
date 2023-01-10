@@ -11,7 +11,7 @@ from models.Reading import Reading
 from models.CountedReading import CountedReading
 from tools.Calculator import Calculator
 from tools.additional_datetime_utils import try_parse_datetime, is_datetime_in_interval, get_time
-from tools.text_formatting_utils import cprint, colorize
+from tools.display_utils import Color, CalculatedValueOutput
 
 class CalcSubParser:
     '''Calculations based on headers and readings'''
@@ -30,11 +30,11 @@ class CalcSubParser:
         check_subparser.add_argument('-aa', '--average-acceleration', action='store_true', help='Calculate average speed boost (acceleration > 0)')
         check_subparser.add_argument('-ad', '--average-deceleration', action='store_true', help='Calculate average speed decrease (acceleration < 0)')
         check_subparser.add_argument('-as', '--average-speed', action='store_true', help='Calculate average speed')
-        # check_subparser.add_argument('-td', '--travel-distance', action='store_true', help='Number of kilometers traveled')
         check_subparser.add_argument('-tt', '--travel-time', action='store_true', help='Find travel time in minutes')
+        # check_subparser.add_argument('-td', '--travel-distance', action='store_true', help='Number of kilometers traveled')
 
         # NOTE - Modes of search and visualization
-        check_subparser.add_argument('-d', '--datetime', nargs='+', type=str, help='Date and time on which to specify acceleration or voltage interval (specify two for the range) (dd.mm.yyyy or dd.mm.yyyy-hh:mm:ss)')
+        check_subparser.add_argument('-d', '--date-time', nargs='+', type=str, help='Date and time on which to specify acceleration or voltage interval (specify two for the range) (dd.mm.yyyy or dd.mm.yyyy-hh:mm:ss)')
         check_subparser.add_argument('-m', '--minimal', nargs=1, type=int, help='Values below this will not be taken into account when searching for a voltage interval (default: 15)')
         check_subparser.add_argument('-a', '--accuracy', nargs=1, type=int, help='Number of decimal places of the displayed values (min: 1, max: 5, default: 2)')
         return subparsers
@@ -68,12 +68,12 @@ class CalcSubParser:
             voltage_interval = Calculator.get_voltage_interval(resource_path, minimal_value, datetime_start, datetime_end)
             
             if len(voltage_interval) != 0:
-                cprint(msg=f"Minimal voltage: {round(voltage_interval['min'], decimal_places)}v\nMaximal voltage: {round(voltage_interval['max'], decimal_places)}v", fore=Fore.WHITE, style=Style.BRIGHT)
+                CalculatedValueOutput('Minimal voltage', str(voltage_interval['min']), 'v').display()
+                CalculatedValueOutput('Maximal voltage', str(voltage_interval['max']), 'v').display()
             else:
                 logger.info("No voltage interval was found for specified conditions")
                 return
 
-        # FIXME - Use until condition is maintained, not neighboring
         elif namespace.accelerations:
             displayed_readings_cnt = 0
             displayed_headers_cnt = 0
@@ -94,7 +94,7 @@ class CalcSubParser:
                             CalcSubParser.show_acceleration(first_reading, last_reading, last_header, decimal_places)
                             displayed_readings_cnt += 1
                         elif displayed_readings_cnt == 0 and displayed_headers_cnt != 0:
-                            cprint(msg="     No speed change detected", fore=Fore.RED, style=Style.BRIGHT)
+                            Color.cprint(msg="     No speed change detected", fore=Fore.RED, style=Style.BRIGHT)
                         elif displayed_headers_cnt == 0:
                             logger.info("No accelerations and decelerations were found for specified conditions")
                         break
@@ -113,7 +113,7 @@ class CalcSubParser:
                             skip_header = False
 
                         if last_header and displayed_readings_cnt == 0:
-                            cprint(msg="     No speed change detected", fore=Fore.RED, style=Style.BRIGHT)
+                            Color.cprint(msg="     No speed change detected", fore=Fore.RED, style=Style.BRIGHT)
                         
                         last_header = Header(line)
                         last_header.display(time=False)
@@ -151,7 +151,7 @@ class CalcSubParser:
             average_acceleration = Calculator.get_average_acceleration(file_path=resource_path, increase=True, datetime_start=datetime_start, datetime_end=datetime_end)
 
             if average_acceleration != 0:
-                cprint(msg=f"Average acceleration: {round(average_acceleration, decimal_places)} m/s^2", fore=Fore.WHITE, style=Style.BRIGHT)
+                CalculatedValueOutput('Average acceleration', str(round(average_acceleration, decimal_places)), 'm/s^2').display()
             else:
                 logger.info("No accelerations were found for specified conditions")
 
@@ -160,15 +160,15 @@ class CalcSubParser:
             average_deceleration = Calculator.get_average_acceleration(file_path=resource_path, increase=False, datetime_start=datetime_start, datetime_end=datetime_end)
 
             if average_deceleration != 0:
-                cprint(msg=f"Average deceleration: {round(average_deceleration, decimal_places)} m/s^2", fore=Fore.WHITE, style=Style.BRIGHT)
+                CalculatedValueOutput('Average deceleration', str(round(average_deceleration, decimal_places)), 'm/s^2').display()
             else:
                 logger.info("No decelerations were found for specified conditions")
 
         elif namespace.average_speed:
             average_speed = Calculator.get_average_speed(file_path=resource_path, datetime_start=datetime_start, datetime_end=datetime_end)
 
-            if average_speed !=0 :
-                cprint(msg=f"Average speed: {round(average_speed, decimal_places)} km/h", fore=Fore.WHITE, style=Style.BRIGHT)
+            if average_speed !=0:
+                CalculatedValueOutput('Average speed', str(round(average_speed, decimal_places)), 'km/h').display()
             else:
                 logger.info("No speed readings were found for specified conditions")
         
@@ -176,7 +176,7 @@ class CalcSubParser:
             travel_time_sec = Calculator.get_travel_time(file_path=resource_path, datetime_start=datetime_start, datetime_end=datetime_end)
 
             if travel_time_sec != 0:
-                cprint(msg=f"Travel time: {round(travel_time_sec / 60, decimal_places)} min", fore=Fore.WHITE, style=Style.BRIGHT)
+                CalculatedValueOutput('Travel time', str(round(travel_time_sec / 60, decimal_places)), 'min').display()
             else:
                 logger.info("No travel time was found for specified conditions")
 
@@ -194,8 +194,8 @@ class CalcSubParser:
         
         acceleration_color = Fore.GREEN if acceleration > 0 else (Fore.YELLOW if acceleration == 0 else Fore.RED)
 
-        time_colored = colorize(msg=f"[{first_reading.time.strftime('%H:%M:%S:%f')} --> {last_reading.time.strftime('%H:%M:%S:%f')}]", fore=Fore.CYAN, style=Style.BRIGHT)
-        acceleration_colored = colorize(msg=str(round(acceleration, decimal_places)), fore=acceleration_color, style=Style.BRIGHT)
+        time_colored = Color.colorize(msg=f"[{first_reading.time.strftime('%H:%M:%S:%f')} --> {last_reading.time.strftime('%H:%M:%S:%f')}]", fore=Fore.CYAN, style=Style.BRIGHT)
+        acceleration_colored = Color.colorize(msg=str(round(acceleration, decimal_places)), fore=acceleration_color, style=Style.BRIGHT)
 
         print(f"     {time_colored} Acceleration: {acceleration_colored} m/s^2")
         

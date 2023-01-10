@@ -3,7 +3,7 @@
 from datetime import datetime
 from colorama import Fore, Style
 from tools.additional_datetime_utils import is_datetime
-from tools.text_formatting_utils import cprint
+from tools.display_utils import Color
 class Header:
     '''Header that is read from the file'''
 
@@ -29,7 +29,7 @@ class Header:
         else:
             header += f"datetime: {self.datetime.strftime('%d.%m.%Y-%H:%M:%S')} | config: [spokes count: {self.spokes_cnt}, wheel circumfulence: {self.wheel_circ}mm, max_voltage: {self.max_voltage}v, save delay: {self.save_delay}s]"
        
-        cprint(msg=header, fore=Fore.WHITE, style=Style.BRIGHT)
+        Color.cprint(msg=header, fore=Fore.WHITE, style=Style.BRIGHT)
         Header.display_cnt += 1
 
     @staticmethod
