@@ -2,6 +2,7 @@
 
 import os
 from datetime import datetime
+from copy import copy
 from models.exceptions import ResourceNotFoundError
 from models.Header import Header
 from models.CountedReading import CountedReading
@@ -25,7 +26,6 @@ class Calculator:
     def get_voltage_interval(file_path : str, minimal_voltage : int, datetime_start : datetime, datetime_end : datetime) -> dict[str, float]:
         '''Find minimal and maximal voltage in requested file'''
         interval = { 'min': 1000.0, 'max': -1.0 }
-        line = ''
         use_header = False
         last_header = None
 
@@ -61,61 +61,76 @@ class Calculator:
     @staticmethod
     def calculate_acceleration(first_speed_kmh : float, first_time_ms : float, second_speed_kmh : float, second_time_ms : float) -> float:
         '''Calculate acceleration between to speeds (m/s^2)'''
-        delta_speed = (second_speed_kmh - first_speed_kmh) * 1000 / 3600
-        delta_time = (second_time_ms - first_time_ms) / 1000
-
-        return delta_speed / delta_time
+        speed_change = (second_speed_kmh - first_speed_kmh) * 1000 / 3600
+        time_change = (second_time_ms - first_time_ms) / 1000
+        return speed_change / time_change
 
     @staticmethod
-    def get_average_acceleration(file_path : str, increase : bool, datetime_start : datetime, datetime_end : datetime) -> float:
+    def get_average_acceleration(file_path : str, find_increase : bool, datetime_start : datetime, datetime_end : datetime) -> float:
         '''Find average speed boost or decrease (m/s^2)'''
-        acceleration_cnt = 0
-        acceleration_sum = 0
-        last_header = None
-        previous_reading = None
-        current_reading = None
-        skip_header = False
-
         if not os.path.isfile(file_path):
             raise ResourceNotFoundError(file_path)
+
+        acceleration_sum = acceleration_cnt = 0
+        increase = decrease = skip_header = False
+        last_header = first_reading = last_reading = buffer_reading = None
 
         with open(file_path, 'r', encoding='UTF-8') as file_r:
             while True:
                 line = file_r.readline()
-
+                
                 if not line:
+                    if first_reading and last_reading:
+                        acceleration = Calculator.calculate_acceleration(first_reading.speed_kmh, first_reading.millis_passed, last_reading.speed_kmh, last_reading.millis_passed)
+                        if (find_increase and acceleration > 0) or (not find_increase and acceleration < 0):
+                            acceleration_sum += acceleration
+                            acceleration_cnt += 1
                     break
-
+                
                 elif Header.is_header(line):
-                    current_header = Header(line)
+                    if first_reading and last_reading:
+                        acceleration = Calculator.calculate_acceleration(first_reading.speed_kmh, first_reading.millis_passed, last_reading.speed_kmh, last_reading.millis_passed)
+                        if (find_increase and acceleration > 0) or (not find_increase and acceleration < 0):
+                            acceleration_sum += acceleration
+                            acceleration_cnt += 1
 
-                    if last_header and current_header.datetime == last_header.datetime:
-                        continue
-
-                    elif not is_datetime_in_interval(current_header.datetime, datetime_start, datetime_end):
+                    if not is_datetime_in_interval(Header(line).datetime, datetime_start, datetime_end):
                         skip_header = True
                         continue
-                    
                     else:
                         skip_header = False
-
-                    last_header = current_header
-                    previous_reading = None
-
+                    
+                    last_header = Header(line)
+                    first_reading = last_reading = buffer_reading = None
+                    increase = decrease = False
+                
                 elif Reading.is_reading(line):
-                    if not skip_header:
-                        current_reading = CountedReading(Reading(line), last_header.spokes_cnt, last_header.wheel_circ, last_header.max_voltage, last_header.save_delay)
-                        if previous_reading:
-                            acceleration = Calculator.calculate_acceleration(previous_reading.speed_kmh, previous_reading.millis_passed, current_reading.speed_kmh, current_reading.millis_passed)
-                            if acceleration > 0 and increase:
-                                acceleration_cnt += 1
-                                acceleration_sum += acceleration
-                            elif acceleration < 0 and not increase:
-                                acceleration_cnt += 1
-                                acceleration_sum += acceleration
-                        previous_reading = current_reading
+                    if not skip_header and last_header:
+                        if first_reading:
+                            buffer_reading = CountedReading(Reading(line), last_header.spokes_cnt, last_header.wheel_circ, last_header.max_voltage, last_header.save_delay)
+                            
+                            last_reading = copy(first_reading) if not last_reading else last_reading
+                            
+                            if ((buffer_reading.speed_kmh > last_reading.speed_kmh) and decrease) or ((buffer_reading.speed_kmh < last_reading.speed_kmh) and increase):
+                                acceleration = Calculator.calculate_acceleration(first_reading.speed_kmh, first_reading.millis_passed, last_reading.speed_kmh, last_reading.millis_passed)
+                                if (find_increase and acceleration > 0) or (not find_increase and acceleration < 0):
+                                    acceleration_sum += acceleration
+                                    acceleration_cnt += 1
+                                first_reading, last_reading = copy(last_reading), copy(buffer_reading)
+                                increase = decrease = False
+                            
+                            elif buffer_reading.speed_kmh == last_reading.speed_kmh:
+                                first_reading = copy(buffer_reading)
+                            
+                            else:
+                                last_reading = copy(buffer_reading)
+                                increase = True if not(increase and decrease) and (last_reading.speed_kmh > first_reading.speed_kmh) else increase
+                                decrease = True if not(increase and decrease) and (last_reading.speed_kmh < first_reading.speed_kmh) else decrease
 
-        if acceleration_cnt != 0 and acceleration_sum != 0:
+                        else:
+                            first_reading = CountedReading(Reading(line), last_header.spokes_cnt, last_header.wheel_circ, last_header.max_voltage, last_header.save_delay)
+
+        if acceleration_sum != 0 and acceleration_cnt != 0:
             return acceleration_sum / acceleration_cnt
         else:
             return 0

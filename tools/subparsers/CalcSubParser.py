@@ -68,22 +68,16 @@ class CalcSubParser:
             voltage_interval = Calculator.get_voltage_interval(resource_path, minimal_value, datetime_start, datetime_end)
             
             if len(voltage_interval) != 0:
-                CalculatedValueOutput('Minimal voltage', str(voltage_interval['min']), 'v').display()
-                CalculatedValueOutput('Maximal voltage', str(voltage_interval['max']), 'v').display()
+                CalculatedValueOutput('Minimal voltage', str(round(voltage_interval['min'], decimal_places)), 'v').display()
+                CalculatedValueOutput('Maximal voltage', str(round(voltage_interval['max'], decimal_places)), 'v').display()
             else:
                 logger.info("No voltage interval was found for specified conditions")
                 return
 
         elif namespace.accelerations:
-            displayed_readings_cnt = 0
-            displayed_headers_cnt = 0
-            last_header = None
-            first_reading = None
-            last_reading = None
-            buffer_reading = None
-            skip_header = False
-            increase = False
-            decrease = False
+            displayed_headers_cnt = displayed_readings_cnt = 0
+            increase = decrease = skip_header = False
+            last_header = first_reading = last_reading = buffer_reading = None
 
             with open(resource_path, 'r', encoding='UTF-8') as file_r:
                 while True:
@@ -92,9 +86,10 @@ class CalcSubParser:
                     if not line:
                         if first_reading and last_reading:
                             CalcSubParser.show_acceleration(first_reading, last_reading, last_header, decimal_places)
-                            displayed_readings_cnt += 1
+                        
                         elif displayed_readings_cnt == 0 and displayed_headers_cnt != 0:
                             Color.cprint(msg="     No speed change detected", fore=Fore.RED, style=Style.BRIGHT)
+                        
                         elif displayed_headers_cnt == 0:
                             logger.info("No accelerations and decelerations were found for specified conditions")
                         break
@@ -103,10 +98,8 @@ class CalcSubParser:
                         if first_reading and last_reading:
                             CalcSubParser.show_acceleration(first_reading, last_reading, last_header, decimal_places)
                             displayed_readings_cnt += 1
-                        
-                        if last_header and Header(line).datetime == last_header.datetime:
-                            continue
-                        elif not is_datetime_in_interval(Header(line).datetime, datetime_start, datetime_end):
+
+                        if not is_datetime_in_interval(Header(line).datetime, datetime_start, datetime_end):
                             skip_header = True
                             continue
                         else:
@@ -119,45 +112,43 @@ class CalcSubParser:
                         last_header.display(time=False)
                         displayed_headers_cnt += 1
                         displayed_readings_cnt = 0
-                        first_reading = None
-                        last_reading = None
-                        buffer_reading = None
+                        first_reading = last_reading = buffer_reading = None
+                        increase = decrease = False
                     
                     elif Reading.is_reading(line):
                         if not skip_header and last_header:
                             if first_reading:
                                 buffer_reading = CountedReading(Reading(line), last_header.spokes_cnt, last_header.wheel_circ, last_header.max_voltage, last_header.save_delay)
                                 
-                                if ((buffer_reading.speed_kmh > first_reading.speed_kmh) and decrease) or ((buffer_reading.speed_kmh < first_reading.speed_kmh) and increase):
-                                    CalcSubParser.show_acceleration(first_reading, buffer_reading, last_header, decimal_places)
+                                last_reading = copy(first_reading) if not last_reading else last_reading
+                                
+                                if ((buffer_reading.speed_kmh > last_reading.speed_kmh) and decrease) or ((buffer_reading.speed_kmh < last_reading.speed_kmh) and increase):
+                                    CalcSubParser.show_acceleration(first_reading, last_reading, last_header, decimal_places)
                                     displayed_readings_cnt += 1
+                                    first_reading, last_reading = copy(last_reading), copy(buffer_reading)
+                                    increase = decrease = False
+                                
+                                elif buffer_reading.speed_kmh == last_reading.speed_kmh:
                                     first_reading = copy(buffer_reading)
                                 
                                 else:
                                     last_reading = copy(buffer_reading)
-
-                                    if (buffer_reading.speed_kmh > first_reading.speed_kmh):
-                                        increase = True
-
-                                    elif (buffer_reading.speed_kmh < first_reading.speed_kmh):
-                                        decrease = True
+                                    increase = True if not(increase and decrease) and (last_reading.speed_kmh > first_reading.speed_kmh) else increase
+                                    decrease = True if not(increase and decrease) and (last_reading.speed_kmh < first_reading.speed_kmh) else decrease
 
                             else:
                                 first_reading = CountedReading(Reading(line), last_header.spokes_cnt, last_header.wheel_circ, last_header.max_voltage, last_header.save_delay)
 
-        
-        # FIXME - Use until condition is maintained, not neighboring
         elif namespace.average_acceleration:
-            average_acceleration = Calculator.get_average_acceleration(file_path=resource_path, increase=True, datetime_start=datetime_start, datetime_end=datetime_end)
+            average_acceleration = Calculator.get_average_acceleration(file_path=resource_path, find_increase=True, datetime_start=datetime_start, datetime_end=datetime_end)
 
             if average_acceleration != 0:
                 CalculatedValueOutput('Average acceleration', str(round(average_acceleration, decimal_places)), 'm/s^2').display()
             else:
                 logger.info("No accelerations were found for specified conditions")
-
-        # FIXME - Use until condition is maintained, not neighboring    
+ 
         elif namespace.average_deceleration:
-            average_deceleration = Calculator.get_average_acceleration(file_path=resource_path, increase=False, datetime_start=datetime_start, datetime_end=datetime_end)
+            average_deceleration = Calculator.get_average_acceleration(file_path=resource_path, find_increase=False, datetime_start=datetime_start, datetime_end=datetime_end)
 
             if average_deceleration != 0:
                 CalculatedValueOutput('Average deceleration', str(round(average_deceleration, decimal_places)), 'm/s^2').display()
