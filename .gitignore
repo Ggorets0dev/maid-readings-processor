@@ -3,3 +3,5 @@
 /output
 /venv
 /.vscode
+/aliases.json
+/aliases_backup.json

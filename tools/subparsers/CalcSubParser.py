@@ -21,22 +21,22 @@ class CalcSubParser:
     @staticmethod
     def add_subparser(subparsers : _SubParsersAction) -> _SubParsersAction:
         '''Creating a subparser'''
-        check_subparser = subparsers.add_parser('calc', description='Checking incoming data or files against patterns')
-        check_subparser.add_argument('-i', '--input', nargs=1, type=ReadableFile, required=True, help='Path to the file with readings')
+        calc_subparser = subparsers.add_parser('calc', description='Checking incoming data or files against patterns')
+        calc_subparser.add_argument('-i', '--input', nargs=1, type=ReadableFile, required=True, help='Path to the file with readings')
         
         # NOTE - One of this targets must be specified
-        check_subparser.add_argument('-vi', '--voltage-interval', action='store_true', help='Find minimal and maximal voltage')
-        check_subparser.add_argument('-ac', '--accelerations', action='store_true', help='Calculate and display all available accelerations')
-        check_subparser.add_argument('-aa', '--average-acceleration', action='store_true', help='Calculate average speed boost (acceleration > 0)')
-        check_subparser.add_argument('-ad', '--average-deceleration', action='store_true', help='Calculate average speed decrease (acceleration < 0)')
-        check_subparser.add_argument('-as', '--average-speed', action='store_true', help='Calculate average speed')
-        check_subparser.add_argument('-tt', '--travel-time', action='store_true', help='Find travel time in minutes')
-        # check_subparser.add_argument('-td', '--travel-distance', action='store_true', help='Number of kilometers traveled')
+        calc_subparser.add_argument('-vi', '--voltage-interval', action='store_true', help='Find minimal and maximal voltage')
+        calc_subparser.add_argument('-ac', '--accelerations', action='store_true', help='Calculate and display all available accelerations')
+        calc_subparser.add_argument('-aa', '--average-acceleration', action='store_true', help='Calculate average speed boost (acceleration > 0)')
+        calc_subparser.add_argument('-ad', '--average-deceleration', action='store_true', help='Calculate average speed decrease (acceleration < 0)')
+        calc_subparser.add_argument('-as', '--average-speed', action='store_true', help='Calculate average speed')
+        calc_subparser.add_argument('-tt', '--travel-time', action='store_true', help='Find travel time in minutes')
+        # calc_subparser.add_argument('-td', '--travel-distance', action='store_true', help='Number of kilometers traveled')
 
         # NOTE - Modes of search and visualization
-        check_subparser.add_argument('-d', '--date-time', nargs='+', type=str, help='Date and time on which to specify acceleration or voltage interval (specify two for the range) (dd.mm.yyyy or dd.mm.yyyy-hh:mm:ss)')
-        check_subparser.add_argument('-m', '--minimal', nargs=1, type=int, help='Values below this will not be taken into account when searching for a voltage interval (default: 15)')
-        check_subparser.add_argument('-a', '--accuracy', nargs=1, type=int, help='Number of decimal places of the displayed values (min: 1, max: 5, default: 2)')
+        calc_subparser.add_argument('-d', '--date-time', nargs='+', type=str, help='Date and time on which to specify acceleration or voltage interval (specify two for the range) (dd.mm.yyyy or dd.mm.yyyy-hh:mm:ss)')
+        calc_subparser.add_argument('-m', '--minimal', nargs=1, type=int, help='Values below this will not be taken into account when searching for a voltage interval (default: 15)')
+        calc_subparser.add_argument('-a', '--accuracy', nargs=1, type=int, help='Number of decimal places of the displayed values (min: 1, max: 5, default: 2)')
         return subparsers
 
     @staticmethod

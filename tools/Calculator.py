@@ -25,12 +25,13 @@ class Calculator:
     @staticmethod
     def get_voltage_interval(file_path : str, minimal_voltage : int, datetime_start : datetime, datetime_end : datetime) -> dict[str, float]:
         '''Find minimal and maximal voltage in requested file'''
-        interval = { 'min': 1000.0, 'max': -1.0 }
-        use_header = False
-        last_header = None
 
         if not os.path.isfile(file_path):
             raise ResourceNotFoundError(file_path)
+
+        interval = { 'min': 1000.0, 'max': -1.0 }
+        skip_header = False
+        last_header = None
 
         with open(file_path, 'r', encoding='UTF-8') as file_r:
             while True:
@@ -39,15 +40,12 @@ class Calculator:
                 if not line:
                     break
 
-                elif line  == '\n' or line  == '':
-                    continue
-
                 if Header.is_header(line):
                     last_header = Header(line)
-                    use_header = is_datetime_in_interval(Header(line).datetime, datetime_start, datetime_end)
+                    skip_header = not is_datetime_in_interval(Header(line).datetime, datetime_start, datetime_end)
                 
                 elif Reading.is_reading(line):
-                    if last_header and use_header:
+                    if not skip_header and last_header:
                         voltage_v = CountedReading.calculate_voltage(Reading(line).analog_voltage, last_header.max_voltage)  
                         if voltage_v >= minimal_voltage:
                             interval['min'] = min(interval['min'], voltage_v)
@@ -94,11 +92,7 @@ class Calculator:
                             acceleration_sum += acceleration
                             acceleration_cnt += 1
 
-                    if not is_datetime_in_interval(Header(line).datetime, datetime_start, datetime_end):
-                        skip_header = True
-                        continue
-                    else:
-                        skip_header = False
+                    skip_header = not is_datetime_in_interval(Header(line).datetime, datetime_start, datetime_end)
                     
                     last_header = Header(line)
                     first_reading = last_reading = buffer_reading = None
@@ -138,13 +132,13 @@ class Calculator:
     @staticmethod
     def get_average_speed(file_path : str, datetime_start : datetime, datetime_end : datetime) -> float:
         '''Find average speed (km/h)'''
-        speed_cnt = 0
-        speed_sum = 0
-        last_header = None
-        skip_header = False
 
         if not os.path.isfile(file_path):
             raise ResourceNotFoundError(file_path)
+        
+        speed_sum = speed_cnt = 0
+        last_header = None
+        skip_header = False
 
         with open(file_path, 'r', encoding='UTF-8') as file_r:
             while True:
@@ -154,19 +148,8 @@ class Calculator:
                     break
 
                 elif Header.is_header(line):
-                    current_header = Header(line)
-                    
-                    if last_header and current_header.datetime == last_header.datetime:
-                        continue
-
-                    elif not is_datetime_in_interval(current_header.datetime, datetime_start, datetime_end):
-                        skip_header = True
-                        continue
-                    
-                    else:
-                        skip_header = False
-
-                    last_header = current_header
+                    last_header = Header(line)
+                    skip_header = not is_datetime_in_interval(last_header.datetime, datetime_start, datetime_end)
 
                 elif Reading.is_reading(line):
                     if not skip_header:
@@ -182,13 +165,13 @@ class Calculator:
     @staticmethod
     def get_travel_time(file_path : str, datetime_start : datetime, datetime_end : datetime) -> float:
         '''Find travel time (sec)'''
-        time_sum_sec = 0
-        current_header = None
-        last_reading = None
-        skip_header = False
 
         if not os.path.isfile(file_path):
             raise ResourceNotFoundError(file_path)
+
+        time_sum_sec = 0
+        current_header = last_reading = None
+        skip_header = False
 
         with open(file_path, 'r', encoding='UTF-8') as file_r:
             while True:
@@ -206,12 +189,7 @@ class Calculator:
                     current_header = Header(line)
                     last_reading = None
 
-                    if not is_datetime_in_interval(current_header.datetime, datetime_start, datetime_end):
-                        skip_header = True
-                        continue
-                    
-                    else:
-                        skip_header = False
+                    skip_header = not is_datetime_in_interval(current_header, datetime_start, datetime_end)
                                 
                 elif Reading.is_reading(line):
                     if not skip_header:

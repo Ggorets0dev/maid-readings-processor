@@ -5,9 +5,9 @@ from colorama import Fore, Style
 class Color:
     '''Functionality related to text coloring'''
     @staticmethod
-    def cprint(msg : str, fore="", back="", style="") -> None:
+    def cprint(msg : str, fore="", back="", style="", end="") -> None:
         '''Color and print text in the terminal'''
-        print(Color.colorize(msg, fore, back, style))
+        print(Color.colorize(msg, fore, back, style), end=end)
 
     @staticmethod
     def colorize(msg : str, fore="", back="", style="") -> str:

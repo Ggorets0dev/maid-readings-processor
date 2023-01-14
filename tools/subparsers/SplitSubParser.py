@@ -8,8 +8,8 @@ from tools.FileParser import FileParser
 class SplitSubParser:
     '''Displaying stitched patterns for headers and readings'''
 
-    @staticmethod
-    def add_subparser(subparsers : _SubParsersAction) -> _SubParsersAction:
+    @classmethod
+    def add_subparser(cls, subparsers : _SubParsersAction) -> _SubParsersAction:
         '''Creating a subparser'''
         split_subparser = subparsers.add_parser('split', description='Split file by parts or line count for better performance (check and reducing are disabled)')
         split_subparser.add_argument('-i', '--input', nargs=1, type=ReadableFile, required=True, help='Path to the file with readings')
@@ -17,10 +17,12 @@ class SplitSubParser:
         # NOTE - Set mode of split
         split_subparser.add_argument('-p', '--parts', nargs=1, type=int, help='Divide the file into PARTS of equal parts (max: 1000)')
         split_subparser.add_argument('-l', '--lines', nargs=1, type=int, help='Divide the file into files with LINES of lines in each one')
+        
+        cls.SUBPARSER = split_subparser
         return subparsers
 
-    @staticmethod
-    def run_split(namespace : Namespace) -> None:
+    @classmethod
+    def run_split(cls, namespace : Namespace) -> None:
         '''Run if Split subparser was called'''
         resource_path = namespace.input[0].name
         lines_cnt = FileParser.count_lines(file_path=resource_path)
@@ -54,5 +56,6 @@ class SplitSubParser:
                 return
         else:
             logger.error("Split mode not selected (--parts / --lines)")
+            cls.SUBPARSER.print_help()
             return
         # !SECTION

@@ -2,6 +2,7 @@
 
 import os
 import codecs
+import json
 from loguru import logger
 from models.Reading import Reading
 from models.Header import Header
@@ -25,8 +26,7 @@ class FileParser:
         bad_lines_inxs = []
         line_inx = 0
         new_section = False
-        last_header = None
-        last_reading = None
+        last_header = last_reading = None
 
         if not os.path.isfile(file_path):
             raise ResourceNotFoundError(file_path) 
@@ -165,9 +165,7 @@ class FileParser:
     def split_file(file_path : str, part_size : int) -> int:
         '''Divide file to parts'''
         new_file_path = os.path.splitext(file_path)[0] + "_part_"
-        line_inx = 0
-        part_inx = 1
-        line = ''
+        line_inx, part_inx = 0, 1
 
         if not os.path.isfile(file_path):
             raise ResourceNotFoundError(file_path)
@@ -204,3 +202,24 @@ class FileParser:
             return True
         except (IOError, UnicodeDecodeError):
             return False
+
+    @staticmethod
+    def parse_aliases(file_path : str) -> dict:
+        '''Collecting aliases for commands'''
+        if not os.path.isfile(file_path):
+            return { 'exists': False, 'data': [] }
+        
+        with open(file_path, 'r', encoding='UTF-8') as read_file:
+            aliases = json.load(read_file)
+
+        try:
+            return { 'exists': True, 'data': aliases['aliases'] }
+        except KeyError:
+            return { 'exists': True, 'data': [] }
+    
+    @staticmethod
+    def write_aliases(file_path : str, aliases : list[dict]) -> bool:
+        '''Adding new alias for command'''
+        aliases_obj = { 'aliases': aliases }
+        with open(file_path, 'w', encoding='UTF-8') as write_file:
+            json.dump(aliases_obj, write_file)    
