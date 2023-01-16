@@ -18,17 +18,16 @@ def user_exception_hook(e_type, value, tr_bck):
 class Error(Exception):
     '''Parenting class for all errors'''
     
-    # NOTE - Codes (random by now) of all available errors, KEY MUST BE A CLASS NAME
+    # NOTE - Codes of all available errors, KEY MUST BE A CLASS NAME
     CODES = {
         'Error': 0,
         'ResourceSizeExceededError': 1,
         'ResourceNotFoundError': 2,
         'ResourceWrongEncodingError': 3,
-        'InvalidResourceReductionError': 4,
-        'InvalidLineDetectedError': 5,
-        'ReadingWithoutHeaderError': 6,
-        'CalledAsModuleError': 7,
-        'InvalidDateTimePassedError': 8
+        'ReadingWithoutHeaderError': 4,
+        'CalledAsModuleError': 5,
+        'InvalidDateTimePassedError': 6,
+        'InvalidResourceError': 7
     }
     
     def __init__(self) -> None:
@@ -60,12 +59,6 @@ class InvalidResourceError(Error):
     def __init__(self, file_path : str) -> None:
         super().__init__()
         logger.error(f"File {file_path} did not pass validation, no futher operations are possible")
-
-class InvalidLineDetectedError(Error):
-    '''String does not match any of the available templates'''
-    def __init__(self, line_inx : int) -> None:
-        super().__init__()
-        logger.error(f"Found line that does not fit any available template: {line_inx} line")
 
 class ReadingWithoutHeaderError(Error):
     '''Reading is not attached to any Header'''
