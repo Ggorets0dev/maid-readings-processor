@@ -1,12 +1,9 @@
-# pylint: disable=E0401 E0611
-
 import os
 from models.exceptions import ResourceSizeExceededError, ResourceNotFoundError, ResourceWrongEncodingError, InvalidResourceError
 from tools.FileParser import FileParser
 
 class ReadableFile:
     '''File which can be handled by functions'''
-
     MAXIMAL_FILE_LENGTH = 10_500_000
 
     def __init__(self, file_path : str) -> None:

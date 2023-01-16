@@ -1,5 +1,3 @@
-#pylint: disable=E0401 E0611
-
 '''Module with all custom exceptions'''
 
 import traceback

@@ -1,5 +1,3 @@
-#pylint: disable=E0401 E0611 W0707 C0301
-
 from datetime import datetime
 from colorama import Fore, Style
 from tools.additional_datetime_utils import is_datetime
