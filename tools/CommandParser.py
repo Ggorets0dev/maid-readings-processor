@@ -1,5 +1,3 @@
-#pylint: disable=C0303 E0401
-
 from argparse import ArgumentParser
 from tools.subparsers.ShowSubParser import ShowSubParser
 from tools.subparsers.CheckSubParser import CheckSubParser

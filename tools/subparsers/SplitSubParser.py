@@ -1,5 +1,3 @@
-#pylint: disable=C0303 C0301 E0401 E0611
-
 from argparse import _SubParsersAction, Namespace
 from loguru import logger
 from models.ReadableFile import ReadableFile

@@ -1,8 +1,9 @@
 class Reading:
     '''Reading that is read from the file'''
 
-    display_cnt = 1
     PATTERN = "{R} int[millis_passed] | int[impulse_count] | int[analog_voltage]"
+    PARAMETER_FOR_EMPTY_OBJECT = "{R} " + f"{0} | {0} | {0}"
+    display_cnt = 1
 
     def __init__(self, reading : str) -> None:
         reading_parts = reading.split(' ')
@@ -27,7 +28,6 @@ class Reading:
         '''Display amount of Readings'''
         for reading in readings:
             reading.display(raw=raw, to_enumerate=to_enumerate)
-
 
     @staticmethod
     def is_reading(reading : str) -> bool:

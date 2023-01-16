@@ -9,6 +9,7 @@ class Header:
 
     display_cnt = 1
     PATTERN = "{H} datetime[datetime] ( int[spokes_count] | int[wheel_circumference] | float[save_delay] | int[max_voltage] )"
+    PARAMETER_FOR_EMPTY_OBJECT = "{H} " + f"01.01.2000-00:00:00 ( {0} | {0} | {0} | {0} )"
 
     def __init__(self, header : str) -> None:
         header_parts = header.split(' ')

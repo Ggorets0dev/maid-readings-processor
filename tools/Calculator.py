@@ -1,5 +1,3 @@
-# pylint: disable=E0401 E0611
-
 import os
 from datetime import datetime
 from copy import copy
@@ -25,7 +23,6 @@ class Calculator:
     @staticmethod
     def get_voltage_interval(file_path : str, minimal_voltage : int, datetime_start : datetime, datetime_end : datetime) -> dict[str, float]:
         '''Find minimal and maximal voltage in requested file'''
-
         if not os.path.isfile(file_path):
             raise ResourceNotFoundError(file_path)
 
@@ -44,12 +41,10 @@ class Calculator:
                     last_header = Header(line)
                     skip_header = not is_datetime_in_interval(Header(line).datetime, datetime_start, datetime_end)
                 
-                elif Reading.is_reading(line):
-                    if not skip_header and last_header:
-                        voltage_v = CountedReading.calculate_voltage(Reading(line).analog_voltage, last_header.max_voltage)  
-                        if voltage_v >= minimal_voltage:
-                            interval['min'] = min(interval['min'], voltage_v)
-                            interval['max'] = max(interval['max'], voltage_v)
+                elif Reading.is_reading(line) and not skip_header and last_header:
+                    voltage_v = CountedReading.calculate_voltage(Reading(line).analog_voltage, last_header.max_voltage)  
+                    if voltage_v >= minimal_voltage:
+                        interval['min'], interval['max'] = min(interval['min'], voltage_v), max(interval['max'], voltage_v)
         
         if interval['min'] != 1000.0 and interval['max'] != -1.0: # * Check if it's still initial value
             return interval
@@ -58,10 +53,17 @@ class Calculator:
 
     @staticmethod
     def calculate_acceleration(first_speed_kmh : float, first_time_ms : float, second_speed_kmh : float, second_time_ms : float) -> float:
-        '''Calculate acceleration between to speeds (m/s^2)'''
+        '''Calculate acceleration for one pair (m/s^2)'''
         speed_change = (second_speed_kmh - first_speed_kmh) * 1000 / 3600
-        time_change = (second_time_ms - first_time_ms) / 1000
+        time_change = abs(second_time_ms - first_time_ms) / 1000
         return speed_change / time_change
+    
+    @staticmethod
+    def calculate_travel_distance(first_speed_kmh : float, first_time_ms : float, second_time_ms : float) -> float:
+        '''Calculate the traveled distance for one pair (km)'''
+        time_change = abs(second_time_ms - first_time_ms) / 1000
+        travel_distance = (time_change / 60) * (first_speed_kmh / 60)
+        return travel_distance
 
     @staticmethod
     def get_average_acceleration(file_path : str, find_increase : bool, datetime_start : datetime, datetime_end : datetime) -> float:
@@ -98,31 +100,29 @@ class Calculator:
                     first_reading = last_reading = buffer_reading = None
                     increase = decrease = False
                 
-                elif Reading.is_reading(line):
-                    if not skip_header and last_header:
-                        if first_reading:
-                            buffer_reading = CountedReading(Reading(line), last_header.spokes_cnt, last_header.wheel_circ, last_header.max_voltage, last_header.save_delay)
-                            
-                            last_reading = copy(first_reading) if not last_reading else last_reading
-                            
-                            if ((buffer_reading.speed_kmh > last_reading.speed_kmh) and decrease) or ((buffer_reading.speed_kmh < last_reading.speed_kmh) and increase):
-                                acceleration = Calculator.calculate_acceleration(first_reading.speed_kmh, first_reading.millis_passed, last_reading.speed_kmh, last_reading.millis_passed)
-                                if (find_increase and acceleration > 0) or (not find_increase and acceleration < 0):
-                                    acceleration_sum += acceleration
-                                    acceleration_cnt += 1
-                                first_reading, last_reading = copy(last_reading), copy(buffer_reading)
-                                increase = decrease = False
-                            
-                            elif buffer_reading.speed_kmh == last_reading.speed_kmh:
-                                first_reading = copy(buffer_reading)
-                            
-                            else:
-                                last_reading = copy(buffer_reading)
-                                increase = True if not(increase and decrease) and (last_reading.speed_kmh > first_reading.speed_kmh) else increase
-                                decrease = True if not(increase and decrease) and (last_reading.speed_kmh < first_reading.speed_kmh) else decrease
-
+                elif Reading.is_reading(line) and not skip_header and last_header:
+                    if first_reading:
+                        buffer_reading = CountedReading(Reading(line), last_header.spokes_cnt, last_header.wheel_circ, last_header.max_voltage, last_header.save_delay)
+                        
+                        last_reading = copy(first_reading) if not last_reading else last_reading
+                        
+                        if ((buffer_reading.speed_kmh > last_reading.speed_kmh) and decrease) or ((buffer_reading.speed_kmh < last_reading.speed_kmh) and increase):
+                            acceleration = Calculator.calculate_acceleration(first_reading.speed_kmh, first_reading.millis_passed, last_reading.speed_kmh, last_reading.millis_passed)
+                            if (find_increase and acceleration > 0) or (not find_increase and acceleration < 0):
+                                acceleration_sum += acceleration
+                                acceleration_cnt += 1
+                            first_reading, last_reading = copy(last_reading), copy(buffer_reading)
+                            increase = decrease = False
+                        
+                        elif buffer_reading.speed_kmh == last_reading.speed_kmh:
+                            first_reading = copy(buffer_reading)
+                        
                         else:
-                            first_reading = CountedReading(Reading(line), last_header.spokes_cnt, last_header.wheel_circ, last_header.max_voltage, last_header.save_delay)
+                            last_reading = copy(buffer_reading)
+                            increase = True if not(increase and decrease) and (last_reading.speed_kmh > first_reading.speed_kmh) else increase
+                            decrease = True if not(increase and decrease) and (last_reading.speed_kmh < first_reading.speed_kmh) else decrease
+                    else:
+                        first_reading = CountedReading(Reading(line), last_header.spokes_cnt, last_header.wheel_circ, last_header.max_voltage, last_header.save_delay)
 
         if acceleration_sum != 0 and acceleration_cnt != 0:
             return acceleration_sum / acceleration_cnt
@@ -132,7 +132,6 @@ class Calculator:
     @staticmethod
     def get_average_speed(file_path : str, datetime_start : datetime, datetime_end : datetime) -> float:
         '''Find average speed (km/h)'''
-
         if not os.path.isfile(file_path):
             raise ResourceNotFoundError(file_path)
         
@@ -151,11 +150,10 @@ class Calculator:
                     last_header = Header(line)
                     skip_header = not is_datetime_in_interval(last_header.datetime, datetime_start, datetime_end)
 
-                elif Reading.is_reading(line):
-                    if not skip_header:
-                        current_reading = CountedReading(Reading(line), last_header.spokes_cnt, last_header.wheel_circ, last_header.max_voltage, last_header.save_delay)
-                        speed_cnt += 1
-                        speed_sum += current_reading.speed_kmh
+                elif Reading.is_reading(line) and not skip_header and last_header:
+                    current_reading = CountedReading(Reading(line), last_header.spokes_cnt, last_header.wheel_circ, last_header.max_voltage, last_header.save_delay)
+                    speed_cnt += 1
+                    speed_sum += current_reading.speed_kmh
             
         if speed_cnt != 0 and speed_sum != 0:
             return speed_sum / speed_cnt
@@ -165,7 +163,6 @@ class Calculator:
     @staticmethod
     def get_travel_time(file_path : str, datetime_start : datetime, datetime_end : datetime) -> float:
         '''Find travel time (sec)'''
-
         if not os.path.isfile(file_path):
             raise ResourceNotFoundError(file_path)
 
@@ -188,11 +185,47 @@ class Calculator:
 
                     current_header = Header(line)
                     last_reading = None
-
                     skip_header = not is_datetime_in_interval(current_header, datetime_start, datetime_end)
                                 
-                elif Reading.is_reading(line):
-                    if not skip_header:
-                        last_reading = Reading(line)
+                elif Reading.is_reading(line) and not skip_header:
+                    last_reading = Reading(line)
         
         return time_sum_sec
+
+    @staticmethod
+    def get_travel_distance(file_path: str, datetime_start : datetime, datetime_end : datetime) -> float:
+        '''Find travel distance'''
+        if not os.path.isfile(file_path):
+            raise ResourceNotFoundError(file_path)
+
+        travel_distance_km = 0
+        current_header = current_reading = last_reading = None
+        skip_header = False
+
+        with open(file_path, 'r', encoding='UTF-8') as file_r:
+            while True:
+                line = file_r.readline()
+
+                if not line:
+                    if last_reading and current_reading:
+                        travel_distance_km += Calculator.calculate_travel_distance(current_reading.speed_kmh, current_reading.millis_passed, last_reading.millis_passed)
+                    break
+
+                elif Header.is_header(line):
+                    if last_reading and current_reading:
+                        travel_distance_km += Calculator.calculate_travel_distance(current_reading.speed_kmh, current_reading.millis_passed, last_reading.millis_passed)
+                    
+                    current_header = Header(line)
+                    skip_header = not is_datetime_in_interval(current_header.datetime, datetime_start, datetime_end)
+                    current_reading, last_reading = None, CountedReading(Reading(Reading.PARAMETER_FOR_EMPTY_OBJECT), current_header.spokes_cnt, current_header.wheel_circ, current_header.max_voltage, current_header.save_delay)
+
+                elif Reading.is_reading(line) and not skip_header and current_header:
+                    current_reading = CountedReading(Reading(line), current_header.spokes_cnt, current_header.wheel_circ, current_header.max_voltage, current_header.save_delay)
+
+                    if last_reading and current_reading:
+                        travel_distance_km += Calculator.calculate_travel_distance(current_reading.speed_kmh, current_reading.millis_passed, last_reading.millis_passed)
+
+                    last_reading = copy(current_reading)
+
+        return travel_distance_km
+    

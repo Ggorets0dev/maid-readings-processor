@@ -6,8 +6,8 @@ from models.Reading import Reading
 class CountedReading:
     '''CountedReading that is read from the file'''
 
-    display_cnt = 1
     PATTERN = "{R} time[time] | int[millis_passed] | float[speed_kmh] | float[voltage_v]"
+    display_cnt = 1
 
     def __init__(self, reading : Reading, spokes_cnt : int, wheel_circ : int, max_voltage : int, save_delay : float) -> None:
         self.time = time(0, 0, 0)

@@ -1,5 +1,3 @@
-#pylint: disable=C0303 C0301 E0401 E0611
-
 from copy import copy
 from datetime import datetime
 from argparse import _SubParsersAction, Namespace
@@ -16,8 +14,6 @@ from tools.display_utils import Color, CalculatedValueOutput
 class CalcSubParser:
     '''Calculations based on headers and readings'''
 
-    # TODO - Travel distance
-
     @staticmethod
     def add_subparser(subparsers : _SubParsersAction) -> _SubParsersAction:
         '''Creating a subparser'''
@@ -31,7 +27,7 @@ class CalcSubParser:
         calc_subparser.add_argument('-ad', '--average-deceleration', action='store_true', help='Calculate average speed decrease (acceleration < 0)')
         calc_subparser.add_argument('-as', '--average-speed', action='store_true', help='Calculate average speed')
         calc_subparser.add_argument('-tt', '--travel-time', action='store_true', help='Find travel time in minutes')
-        # calc_subparser.add_argument('-td', '--travel-distance', action='store_true', help='Number of kilometers traveled')
+        calc_subparser.add_argument('-td', '--travel-distance', action='store_true', help='Number of kilometers traveled')
 
         # NOTE - Modes of search and visualization
         calc_subparser.add_argument('-d', '--date-time', nargs='+', type=str, help='Date and time on which to specify acceleration or voltage interval (specify two for the range) (dd.mm.yyyy or dd.mm.yyyy-hh:mm:ss)')
@@ -170,6 +166,14 @@ class CalcSubParser:
                 CalculatedValueOutput('Travel time', str(round(travel_time_sec / 60, decimal_places)), 'min').display()
             else:
                 logger.info("No travel time was found for specified conditions")
+
+        elif namespace.travel_distance:
+            travel_distance_km = Calculator.get_travel_distance(file_path=resource_path, datetime_start=datetime_start, datetime_end=datetime_end)
+
+            if travel_distance_km != 0:
+                CalculatedValueOutput('Travel distance', str(round(travel_distance_km, decimal_places)), 'km').display()
+            else:
+                logger.info("No travel distance was found for specified conditions")
 
         else:
             logger.error("Calculation target not selected (--voltage-interval / --all-accelerations / --average-acceleration / --average-deceleration / --average-speed / --travel-time / --travel-distance)")

@@ -1,5 +1,3 @@
-#pylint: disable=C0303 C0301 C0103 E0401 E0611
-
 import os
 import sys
 import subprocess

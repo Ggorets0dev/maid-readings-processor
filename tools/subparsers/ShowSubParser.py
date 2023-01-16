@@ -1,5 +1,3 @@
-#pylint: disable=C0301 C0303 E0401 E0611
-
 from argparse import _SubParsersAction, Namespace
 from datetime import datetime
 from loguru import logger

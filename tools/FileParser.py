@@ -1,5 +1,3 @@
-#pylint: disable=E0401 E0611 C0301 C0303
-
 import os
 import codecs
 import json
