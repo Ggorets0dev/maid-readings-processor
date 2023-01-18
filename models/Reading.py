@@ -2,7 +2,6 @@ class Reading:
     '''Reading that is read from the file'''
 
     PATTERN = "{R} int[millis_passed] | int[impulse_count] | int[analog_voltage]"
-    PARAMETER_FOR_EMPTY_OBJECT = "{R} " + f"{0} | {0} | {0}"
     display_cnt = 1
 
     def __init__(self, reading : str) -> None:
@@ -28,6 +27,12 @@ class Reading:
         '''Display amount of Readings'''
         for reading in readings:
             reading.display(raw=raw, to_enumerate=to_enumerate)
+
+    @classmethod
+    def create_empty(cls):
+        '''Creating an empty instance of a class'''
+        reading = cls("{R} " + f"{0} | {0} | {0}")
+        return reading
 
     @staticmethod
     def is_reading(reading : str) -> bool:

@@ -1,6 +1,6 @@
 import os
 import codecs
-import json
+import yaml
 from loguru import logger
 from models.Reading import Reading
 from models.Header import Header
@@ -207,8 +207,8 @@ class FileParser:
         if not os.path.isfile(file_path):
             return { 'exists': False, 'data': [] }
         
-        with open(file_path, 'r', encoding='UTF-8') as read_file:
-            aliases = json.load(read_file)
+        with open(file_path, 'r', encoding='UTF-8') as file_read:
+            aliases = yaml.safe_load(file_read)
 
         try:
             return { 'exists': True, 'data': aliases['aliases'] }
@@ -216,8 +216,8 @@ class FileParser:
             return { 'exists': True, 'data': [] }
     
     @staticmethod
-    def write_aliases(file_path : str, aliases : list[dict]) -> bool:
+    def save_aliases(file_path : str, aliases : list[dict]) -> bool:
         '''Adding new alias for command'''
-        aliases_obj = { 'aliases': aliases }
-        with open(file_path, 'w', encoding='UTF-8') as write_file:
-            json.dump(aliases_obj, write_file)    
+        aliases = { 'aliases': aliases }
+        with open(file_path, 'w', encoding='UTF-8') as file_write:
+            yaml.dump(aliases, file_write, default_flow_style=False)    

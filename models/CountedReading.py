@@ -1,5 +1,7 @@
 from datetime import time
+from colorama import Fore, Style
 from models.Reading import Reading
+from tools.display_utils import Color
 
 class CountedReading:
     '''CountedReading that is read from the file'''
@@ -13,7 +15,7 @@ class CountedReading:
         self.speed_kmh = CountedReading.calculate_speed(impulse_cnt=reading.impulse_cnt, spokes_cnt=spokes_cnt, wheel_circ=wheel_circ, save_delay=save_delay)
         self.voltage_v = CountedReading.calculate_voltage(analog_voltage=reading.analog_voltage, max_voltage=max_voltage)
 
-    def display(self, raw=False, to_enumerate=False, decimal_places=2) -> None:
+    def display(self, raw=False, to_enumerate=False, maximal_speed=1000, decimal_places=2) -> None:
         '''Displaying CountedReading in different modes'''
         reading = f"{CountedReading.display_cnt}) " if to_enumerate else ""
 
@@ -22,14 +24,17 @@ class CountedReading:
         else:
             reading += f"{self.time} | {self.millis_passed} | {round(self.speed_kmh, decimal_places)} | {round(self.voltage_v, decimal_places)}"
 
-        CountedReading.display_cnt += 1
+        if self.speed_kmh >= maximal_speed or self.speed_kmh < 0:
+            reading += Color.colorize(" (Anomalous speed)", fore=Fore.RED, style=Style.BRIGHT)
+
         print(reading)
+        CountedReading.display_cnt += 1
 
     @staticmethod
-    def display_list(readings : list, raw=False, to_enumerate=False, decimal_places=2) -> None:
+    def display_list(readings : list, raw=False, to_enumerate=False, maximal_speed=1000, decimal_places=2) -> None:
         '''Display amount of CountedReadings'''
         for reading in readings:
-            reading.display(raw=raw, to_enumerate=to_enumerate, decimal_places=decimal_places)
+            reading.display(raw=raw, to_enumerate=to_enumerate, maximal_speed=maximal_speed, decimal_places=decimal_places)
 
     @staticmethod
     def calculate_speed(impulse_cnt : int, spokes_cnt : int, wheel_circ : int, save_delay : float) -> float:

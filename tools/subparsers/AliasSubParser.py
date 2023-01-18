@@ -26,7 +26,7 @@ class AliasSubParser:
     @classmethod
     def run_alias(cls, namespace : Namespace) -> None:
         '''Run if Alias subparser was called'''
-        ALIASES_PATH = os.path.join(os.path.split(os.path.abspath(__file__))[0], '..', '..', 'aliases.json')
+        ALIASES_PATH = os.path.join(os.path.split(os.path.abspath(__file__))[0], '..', '..', 'aliases.yaml')
         MAIN_SCRIPT_PATH = os.path.join(os.path.split(os.path.abspath(__file__))[0], '..', '..', 'marp.py')
         
         ALIASES = FileParser.parse_aliases(ALIASES_PATH)

@@ -3,12 +3,12 @@
 '''
 Marp - MaidReadingsProcessor (Maid Software's processing utility)
 Written by Ggorets0dev (nikgorets4work@gmail.com)
-Version: 0.23.2
+Version: 0.24.0
 License: MIT
 GitHub: https://github.com/Ggorets0dev/maid-readings-processor
 '''
 
-__VERSION__ = "0.23.2"
+__VERSION__ = "0.24.0"
 
 import sys
 import pyfiglet

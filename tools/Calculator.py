@@ -217,7 +217,7 @@ class Calculator:
                     
                     current_header = Header(line)
                     skip_header = not is_datetime_in_interval(current_header.datetime, datetime_start, datetime_end)
-                    current_reading, last_reading = None, CountedReading(Reading(Reading.PARAMETER_FOR_EMPTY_OBJECT), current_header.spokes_cnt, current_header.wheel_circ, current_header.max_voltage, current_header.save_delay)
+                    current_reading, last_reading = None, CountedReading(Reading.create_empty(), current_header.spokes_cnt, current_header.wheel_circ, current_header.max_voltage, current_header.save_delay)
 
                 elif Reading.is_reading(line) and not skip_header and current_header:
                     current_reading = CountedReading(Reading(line), current_header.spokes_cnt, current_header.wheel_circ, current_header.max_voltage, current_header.save_delay)

@@ -5,9 +5,8 @@ from tools.display_utils import Color
 class Header:
     '''Header that is read from the file'''
 
-    display_cnt = 1
     PATTERN = "{H} datetime[datetime] ( int[spokes_count] | int[wheel_circumference] | float[save_delay] | int[max_voltage] )"
-    PARAMETER_FOR_EMPTY_OBJECT = "{H} " + f"01.01.2000-00:00:00 ( {0} | {0} | {0} | {0} )"
+    display_cnt = 1
 
     def __init__(self, header : str) -> None:
         header_parts = header.split(' ')
@@ -36,6 +35,12 @@ class Header:
         '''Display amount of Headers'''
         for header in headers:
             header.display(raw=raw, to_enumerate=to_enumerate)
+
+    @classmethod
+    def create_empty(cls):
+        '''Creating an empty instance of a class'''
+        header = cls("{H} " + f"01.01.2000-00:00:00 ( {0} | {0} | {0} | {0} )")
+        return header
 
     @staticmethod
     def is_header(header : str) -> bool:

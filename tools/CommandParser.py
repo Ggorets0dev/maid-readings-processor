@@ -16,7 +16,7 @@ class CommandParser:
         parser = ArgumentParser(
             prog='marp',
             description='Universal handler of data written by MaidModule. Runs from the command line on any OS',
-            epilog='(c) Ggorets0dev 2022'
+            epilog='Ggorets0dev (nikgorets4work@gmail.com)'
         )
         parser.add_argument('-v', '--version', action='store_true', help='Version of Marp')
 

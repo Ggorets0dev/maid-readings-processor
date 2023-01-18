@@ -5,6 +5,7 @@ from tools.FileParser import FileParser
 from tools.Calculator import Calculator
 from tools.additional_datetime_utils import try_parse_datetime, is_datetime_in_interval
 from models.Reading import Reading
+from models.Config import Config
 from models.ReadableFile import ReadableFile
 from models.CountedReading import CountedReading
 
@@ -34,8 +35,8 @@ class ShowSubParser:
     @classmethod
     def run_show(cls, namespace : Namespace) -> None:
         '''Run if Show subparser was called'''
-
         resource_path = namespace.input[0].name
+        config = Config.collect()
 
         # NOTE - Processing targets: --line-count
         if namespace.line_count:
@@ -87,7 +88,7 @@ class ShowSubParser:
                         if isinstance(reading, Reading):
                             reading.display(raw=namespace.raw, to_enumerate=namespace.enumerate)
                         elif isinstance(reading, CountedReading):
-                            reading.display(raw=namespace.raw, to_enumerate=namespace.enumerate, decimal_places=namespace.calculate[0])
+                            reading.display(raw=namespace.raw, to_enumerate=namespace.enumerate, maximal_speed=config.maximal_speed, decimal_places=namespace.calculate[0])
                         found_any = True
             if not found_any:
                 logger.info('No readings was found on specified --datetime')

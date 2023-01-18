@@ -6,6 +6,7 @@ from loguru import logger
 from models.ReadableFile import ReadableFile
 from models.Header import Header
 from models.Reading import Reading
+from models.Config import Config
 from models.CountedReading import CountedReading
 from tools.Calculator import Calculator
 from tools.additional_datetime_utils import try_parse_datetime, is_datetime_in_interval, get_time
@@ -31,7 +32,6 @@ class CalcSubParser:
 
         # NOTE - Modes of search and visualization
         calc_subparser.add_argument('-d', '--date-time', nargs='+', type=str, help='Date and time on which to specify acceleration or voltage interval (specify two for the range) (dd.mm.yyyy or dd.mm.yyyy-hh:mm:ss)')
-        calc_subparser.add_argument('-m', '--minimal', nargs=1, type=int, help='Values below this will not be taken into account when searching for a voltage interval (default: 15)')
         calc_subparser.add_argument('-a', '--accuracy', nargs=1, type=int, help='Number of decimal places of the displayed values (min: 1, max: 5, default: 2)')
         return subparsers
 
@@ -39,6 +39,7 @@ class CalcSubParser:
     def run_calc(namespace : Namespace) -> None:
         '''Run if Calc subparser was called'''
         resource_path = namespace.input[0].name
+        config = Config.collect()
 
         # NOTE - Check if count of --date args is wrong
         if namespace.date_time and len(namespace.date_time) > 2:
@@ -46,7 +47,6 @@ class CalcSubParser:
             return
 
         # NOTE - Filling parameters with values or None if no arguments are used
-        minimal_value = namespace.minimal[0] if namespace.minimal else 15
         datetime_start = try_parse_datetime(namespace.date_time[0]) if namespace.date_time and len(namespace.date_time) >= 1 else datetime(2000, 1, 1)
         datetime_end = try_parse_datetime(namespace.date_time[1]) if namespace.date_time and len(namespace.date_time) == 2 else datetime(3000, 1, 1)
 
@@ -61,7 +61,7 @@ class CalcSubParser:
 
         # SECTION - Processing targets: --voltage-interval --all-accelerations --average-acceleration --average-deceleration --average-speed --travel-time --travel-distance
         if namespace.voltage_interval:
-            voltage_interval = Calculator.get_voltage_interval(resource_path, minimal_value, datetime_start, datetime_end)
+            voltage_interval = Calculator.get_voltage_interval(resource_path, config.minimal_voltage, datetime_start, datetime_end)
             
             if len(voltage_interval) != 0:
                 CalculatedValueOutput('Minimal voltage', str(round(voltage_interval['min'], decimal_places)), 'v').display()
