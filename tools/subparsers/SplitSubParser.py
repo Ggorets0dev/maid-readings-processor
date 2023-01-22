@@ -55,5 +55,4 @@ class SplitSubParser:
         else:
             logger.error("Split mode not selected (--parts / --lines)")
             cls.SUBPARSER.print_help()
-            return
         # !SECTION

@@ -5,24 +5,14 @@ from models.exceptions import ResourceNotFoundError
 from models.Header import Header
 from models.CountedReading import CountedReading
 from models.Reading import Reading
-from tools.additional_datetime_utils import get_time, is_datetime_in_interval
+from tools.additional_datetime_utils import is_datetime_in_interval
 
 class Calculator:
     '''Operations with Headers and Readings from file or memory'''
 
     @staticmethod
-    def convert_readings(headers_readings : dict[Header, list[Reading]]) -> dict[Header, list[CountedReading]]:
-        '''Convert list of Readings to list of CountedReadings'''
-        for header in headers_readings:
-            for i in range(len(headers_readings[header])):
-                headers_readings[header][i] = CountedReading(headers_readings[header][i], header.spokes_cnt, header.wheel_circ, header.max_voltage, header.save_delay)
-            for reading in headers_readings[header]:
-                reading.time = get_time(header.datetime, reading.millis_passed)
-        return headers_readings
-
-    @staticmethod
-    def get_voltage_interval(file_path : str, minimal_voltage : int, datetime_start : datetime, datetime_end : datetime) -> dict[str, float]:
-        '''Find minimal and maximal voltage in requested file'''
+    def get_voltage_interval(file_path : str, datetime_start : datetime, datetime_end : datetime, minimal_voltage : int) -> dict[str, float]:
+        '''Find minimal and maximal voltage'''
         if not os.path.isfile(file_path):
             raise ResourceNotFoundError(file_path)
 
@@ -39,7 +29,7 @@ class Calculator:
 
                 if Header.is_header(line):
                     last_header = Header(line)
-                    skip_header = not is_datetime_in_interval(Header(line).datetime, datetime_start, datetime_end)
+                    skip_header = not is_datetime_in_interval(last_header.datetime, datetime_start, datetime_end)
                 
                 elif Reading.is_reading(line) and not skip_header and last_header:
                     voltage_v = CountedReading.calculate_voltage(Reading(line).analog_voltage, last_header.max_voltage)  
@@ -52,7 +42,7 @@ class Calculator:
             return {}
 
     @staticmethod
-    def calculate_acceleration(first_speed_kmh : float, first_time_ms : float, second_speed_kmh : float, second_time_ms : float) -> float:
+    def calculate_acceleration(first_speed_kmh : float, first_time_ms : int, second_speed_kmh : float, second_time_ms : int) -> float:
         '''Calculate acceleration for one pair (m/s^2)'''
         speed_change = (second_speed_kmh - first_speed_kmh) * 1000 / 3600
         time_change = abs(second_time_ms - first_time_ms) / 1000
@@ -94,9 +84,9 @@ class Calculator:
                             acceleration_sum += acceleration
                             acceleration_cnt += 1
 
-                    skip_header = not is_datetime_in_interval(Header(line).datetime, datetime_start, datetime_end)
-                    
                     last_header = Header(line)
+                    skip_header = not is_datetime_in_interval(last_header.datetime, datetime_start, datetime_end)
+    
                     first_reading = last_reading = buffer_reading = None
                     increase = decrease = False
                 
@@ -185,7 +175,7 @@ class Calculator:
 
                     current_header = Header(line)
                     last_reading = None
-                    skip_header = not is_datetime_in_interval(current_header, datetime_start, datetime_end)
+                    skip_header = not is_datetime_in_interval(current_header.datetime, datetime_start, datetime_end)
                                 
                 elif Reading.is_reading(line) and not skip_header:
                     last_reading = Reading(line)

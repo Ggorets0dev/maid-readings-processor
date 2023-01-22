@@ -15,8 +15,8 @@ from tools.display_utils import Color, CalculatedValueOutput
 class CalcSubParser:
     '''Calculations based on headers and readings'''
 
-    @staticmethod
-    def add_subparser(subparsers : _SubParsersAction) -> _SubParsersAction:
+    @classmethod
+    def add_subparser(cls, subparsers : _SubParsersAction) -> _SubParsersAction:
         '''Creating a subparser'''
         calc_subparser = subparsers.add_parser('calc', description='Checking incoming data or files against patterns')
         calc_subparser.add_argument('-i', '--input', nargs=1, type=ReadableFile, required=True, help='Path to the file with readings')
@@ -33,17 +33,19 @@ class CalcSubParser:
         # NOTE - Modes of search and visualization
         calc_subparser.add_argument('-d', '--date-time', nargs='+', type=str, help='Date and time on which to specify acceleration or voltage interval (specify two for the range) (dd.mm.yyyy or dd.mm.yyyy-hh:mm:ss)')
         calc_subparser.add_argument('-a', '--accuracy', nargs=1, type=int, help='Number of decimal places of the displayed values (min: 1, max: 5, default: 2)')
+        
+        cls.SUBPARSER = calc_subparser
         return subparsers
 
-    @staticmethod
-    def run_calc(namespace : Namespace) -> None:
+    @classmethod
+    def run_calc(cls, namespace : Namespace) -> None:
         '''Run if Calc subparser was called'''
         resource_path = namespace.input[0].name
         config = Config.collect()
 
         # NOTE - Check if count of --date args is wrong
         if namespace.date_time and len(namespace.date_time) > 2:
-            logger.error("One or two dates can be passed with the --date argument")
+            logger.error("One or two dates can be passed with the --date-time argument")
             return
 
         # NOTE - Filling parameters with values or None if no arguments are used
@@ -177,7 +179,7 @@ class CalcSubParser:
 
         else:
             logger.error("Calculation target not selected (--voltage-interval / --all-accelerations / --average-acceleration / --average-deceleration / --average-speed / --travel-time / --travel-distance)")
-            return
+            cls.SUBPARSER.print_help()
         # !SECTION
 
     @staticmethod

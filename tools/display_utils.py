@@ -5,7 +5,7 @@ from colorama import Fore, Style
 class Color:
     '''Functionality related to text coloring'''
     @staticmethod
-    def cprint(msg : str, fore="", back="", style="", end="") -> None:
+    def cprint(msg : str, fore="", back="", style="", end='\n') -> None:
         '''Color and print text in the terminal'''
         print(Color.colorize(msg, fore, back, style), end=end)
 
@@ -41,4 +41,3 @@ class CalculatedValueOutput(ConstantValueOutput):
         units_of_measure_colored = Color.colorize(msg=self.units_of_measure, fore=Fore.WHITE, style=Style.BRIGHT)
 
         print(f"{description_colored}: {value_colored} {units_of_measure_colored}")
-

@@ -22,4 +22,3 @@ class ReduceSubParser:
             logger.success(f"File {namespace.input[0].name} successfully reduced, result available at: {file_path}")
         else:
             logger.error("It was not possible to perform the reduction because the operation was interrupted")
-            return

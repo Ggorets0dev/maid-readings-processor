@@ -1,13 +1,74 @@
 import os
 import codecs
+from datetime import datetime
 import yaml
 from loguru import logger
+from tools.additional_datetime_utils import is_datetime_in_interval, get_time
 from models.Reading import Reading
 from models.Header import Header
+from models.CountedReading import CountedReading
+from models.Config import Config
 from models.exceptions import ReadingWithoutHeaderError, ResourceNotFoundError
 
 class FileParser:
     '''Parsing class of the file with module readings'''
+
+    @staticmethod
+    def show_headers(file_path : str, datetime_start : datetime, datetime_end : datetime, raw=False, to_enumerate=False) -> None:
+        '''Display all headers (ignore duplicates by date)'''
+        if not os.path.isfile(file_path):
+            raise ResourceNotFoundError(file_path) 
+
+        found_any = False
+        last_header = Header.create_empty()
+        with open(file_path, 'r', encoding='UTF-8') as file_r:
+            while True:
+                line = file_r.readline()
+
+                if not line:
+                    break
+
+                elif Header.is_header(line):
+                    header = Header(line)
+                    if is_datetime_in_interval(header.datetime, datetime_start, datetime_end) and header.datetime.date != last_header.datetime.date:
+                        header.display(raw=raw, to_enumerate=to_enumerate)
+                        last_header = header
+                        found_any = True
+            
+            if not found_any:
+                logger.info('No headers was found on specified datetime')
+    
+    @staticmethod
+    def show_readings(file_path : str, datetime_start : datetime, datetime_end : datetime, config : Config, calculated=False, raw=False, to_enumerate=False) -> None:
+        '''Display all readings (raw or calculated)'''
+        if not os.path.isfile(file_path):
+            raise ResourceNotFoundError(file_path)
+        
+        found_any = skip_header = False
+        last_header = Header.create_empty()
+        with open(file_path, 'r', encoding='UTF-8') as file_r: 
+            while True:
+                line = file_r.readline()
+
+                if not line:
+                    break
+                
+                elif Header.is_header(line):
+                    last_header = Header(line)
+                    skip_header = not is_datetime_in_interval(last_header.datetime, datetime_start, datetime_end)
+
+                elif Reading.is_reading(line) and not skip_header:
+                    reading = Reading(line)
+                    if calculated:
+                        reading = CountedReading(reading, last_header.spokes_cnt, last_header.wheel_circ, last_header.max_voltage, last_header.save_delay)
+                        reading.time = get_time(last_header.datetime, reading.millis_passed)
+                        reading.display(raw=raw, to_enumerate=to_enumerate, decimal_places=3, maximal_speed=config.maximal_speed)
+                    else:
+                        reading.display(raw=raw, to_enumerate=to_enumerate)
+                    found_any = True
+
+            if not found_any:
+                logger.info('No readings was found on specified datetime')
 
     @staticmethod
     def count_lines(file_path : str) -> int:
