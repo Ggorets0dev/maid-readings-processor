@@ -62,7 +62,7 @@ class FileParser:
                     if calculated:
                         reading = CountedReading(reading, last_header.spokes_cnt, last_header.wheel_circ, last_header.max_voltage, last_header.save_delay)
                         reading.time = get_time(last_header.datetime, reading.millis_passed)
-                        reading.display(raw=raw, to_enumerate=to_enumerate, decimal_places=3, maximal_speed=config.maximal_speed)
+                        reading.display(normal_speed_interval=config.normal_speed_interval, normal_voltage_interval=config.normal_voltage_interval, raw=raw, to_enumerate=to_enumerate, decimal_places=3)
                     else:
                         reading.display(raw=raw, to_enumerate=to_enumerate)
                     found_any = True

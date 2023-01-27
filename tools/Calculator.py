@@ -11,7 +11,7 @@ class Calculator:
     '''Operations with Headers and Readings from file or memory'''
 
     @staticmethod
-    def get_voltage_interval(file_path : str, datetime_start : datetime, datetime_end : datetime, minimal_voltage : int) -> dict[str, float]:
+    def get_voltage_interval(file_path : str, datetime_start : datetime, datetime_end : datetime, minimal_voltage_search : int) -> dict[str, float]:
         '''Find minimal and maximal voltage'''
         if not os.path.isfile(file_path):
             raise ResourceNotFoundError(file_path)
@@ -33,7 +33,7 @@ class Calculator:
                 
                 elif Reading.is_reading(line) and not skip_header and last_header:
                     voltage_v = CountedReading.calculate_voltage(Reading(line).analog_voltage, last_header.max_voltage)  
-                    if voltage_v >= minimal_voltage:
+                    if voltage_v >= minimal_voltage_search:
                         interval['min'], interval['max'] = min(interval['min'], voltage_v), max(interval['max'], voltage_v)
         
         if interval['min'] != 1000.0 and interval['max'] != -1.0: # * Check if it's still initial value

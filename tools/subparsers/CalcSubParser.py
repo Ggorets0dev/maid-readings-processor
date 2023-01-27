@@ -63,7 +63,7 @@ class CalcSubParser:
 
         # SECTION - Processing targets: --voltage-interval --all-accelerations --average-acceleration --average-deceleration --average-speed --travel-time --travel-distance
         if namespace.voltage_interval:
-            voltage_interval = Calculator.get_voltage_interval(resource_path, config.minimal_voltage, datetime_start, datetime_end)
+            voltage_interval = Calculator.get_voltage_interval(resource_path, datetime_start, datetime_end, config.minimal_voltage_search)
             
             if len(voltage_interval) != 0:
                 CalculatedValueOutput('Minimal voltage', str(round(voltage_interval['min'], decimal_places)), 'v').display()

@@ -30,12 +30,6 @@ class Header:
         Color.cprint(msg=header, fore=Fore.WHITE, style=Style.BRIGHT)
         Header.display_cnt += 1
 
-    @staticmethod
-    def display_list(headers : list, raw=False, to_enumerate=False) -> None:
-        '''Display amount of Headers'''
-        for header in headers:
-            header.display(raw=raw, to_enumerate=to_enumerate)
-
     @classmethod
     def create_empty(cls):
         '''Creating an empty instance of a class'''

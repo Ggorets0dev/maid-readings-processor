@@ -22,12 +22,6 @@ class Reading:
         Reading.display_cnt += 1
         print(reading)
 
-    @staticmethod
-    def display_list(readings : list, raw=False, to_enumerate=False) -> None:
-        '''Display amount of Readings'''
-        for reading in readings:
-            reading.display(raw=raw, to_enumerate=to_enumerate)
-
     @classmethod
     def create_empty(cls):
         '''Creating an empty instance of a class'''

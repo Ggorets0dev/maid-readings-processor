@@ -7,14 +7,16 @@ class Config:
     PATH = os.path.join(os.path.split(os.path.abspath(__file__))[0], '..', 'config.yaml')
 
     def __init__(self, config : dict) -> None:
-        self.minimal_voltage = config['minimal_voltage']
-        self.maximal_speed = config['maximal_speed']
+        self.minimal_voltage_search = config['minimal_voltage_search']
+        self.normal_speed_interval = config['normal_speed_interval']
+        self.normal_voltage_interval = config['normal_voltage_interval']
 
     def save(self) -> None:
         '''Write all available parameters in the document (rewrite)'''
         config = {
-            'minimal_voltage': self.minimal_voltage,
-            'maximal_speed': self.maximal_speed
+            'minimal_voltage_search': self.minimal_voltage_search,
+            'normal_speed_interval': self.normal_speed_interval,
+            'normal_voltage_interval': self.normal_voltage_interval
         }
 
         with open(Config.PATH, 'w', encoding='UTF-8') as file_write:
@@ -24,8 +26,15 @@ class Config:
     def create_initial(cls):
         '''Create config with initial settings'''
         config = cls({
-            'minimal_voltage': 12,
-            'maximal_speed': 80})
+            'minimal_voltage_search': 12,
+            'normal_speed_interval': {
+                'min': 0,
+                'max': 80
+            },
+            'normal_voltage_interval': {
+                'min': 0,
+                'max': 60
+            }})
         return config
 
     @classmethod

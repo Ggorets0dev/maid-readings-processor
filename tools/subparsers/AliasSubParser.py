@@ -46,12 +46,12 @@ class AliasSubParser:
             aliases = copy(ALIASES['data'])
             for alias in aliases:
                 if alias['name'] == name:
-                    logger.error("Failed to add an alias, the name is already taken (first remove it with --delete)")
+                    logger.error("Failed to add an alias, the name is already taken (firstly remove it with --delete)")
                     return
 
             aliases.append( { 'name': name, 'cmd': command } )
 
-            FileParser.write_aliases(ALIASES_PATH, aliases)
+            FileParser.save_aliases(ALIASES_PATH, aliases)
             logger.success(f"Alias {name} successfully added")
 
         elif namespace.launch:
@@ -94,9 +94,9 @@ class AliasSubParser:
         elif namespace.reset:
             if os.path.isfile(ALIASES_PATH): 
                 os.remove(ALIASES_PATH) 
-                logger.success("Alias file has been successfully deleted (aliases can be created using --add)")
+                logger.success("Alias file has been successfully deleted")
             else: 
-                logger.error("ANo alias file, no deletion possible (new aliases can be created using --add)")
+                logger.error("No alias file, no deletion possible (new aliases can be created using --add)")
             
         else:
             logger.error("Alias interraction not selected")
