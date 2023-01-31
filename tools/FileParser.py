@@ -2,6 +2,7 @@
 
 import os
 import codecs
+from copy import copy
 from datetime import datetime
 import yaml
 from loguru import logger
@@ -232,6 +233,8 @@ class FileParser:
             raise ResourceNotFoundError(file_path)
 
         file_w = open(new_file_path + str(part_inx) + '.txt', 'w', encoding='UTF-8')
+        last_header = current_header = None
+
         with open(file_path, 'r', encoding='UTF-8') as file_r:
             while True:
                 line = file_r.readline()
@@ -239,16 +242,23 @@ class FileParser:
                 if not line:
                     break
 
-                elif line_inx >= part_size and Header.is_header(line):
-                    line_inx = 1
-                    part_inx += 1
-                    file_w.close()
-                    file_w = open(f"{new_file_path}{part_inx}.txt", 'w', encoding='UTF-8')
-                    file_w.write(line)
+                if Header.is_header(line):
+                    current_header = Header(line)
 
-                else:
+                    if line_inx >= part_size and (not last_header or (last_header and Header(line).datetime.date() != last_header.datetime.date())):
+                        line_inx = 1
+                        part_inx += 1
+                        file_w.close()
+                        file_w = open(f"{new_file_path}{part_inx}.txt", 'w', encoding='UTF-8')
+                    
                     file_w.write(line)
                     line_inx += 1
+                    last_header = copy(current_header)
+
+                elif Reading.is_reading(line):
+                    file_w.write(line)
+                    line_inx += 1
+            
             file_w.close()
         
         return part_inx

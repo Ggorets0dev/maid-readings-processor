@@ -1,14 +1,12 @@
-#pylint: disable=C0303 E0401
-
 '''
 Marp - MaidReadingsProcessor (Maid Software's processing utility)
 Written by Ggorets0dev (nikgorets4work@gmail.com)
-Version: 0.27.0
+Version: 0.27.1
 License: MIT
 GitHub: https://github.com/Ggorets0dev/maid-readings-processor
 '''
 
-__VERSION__ = "0.27.0"
+__VERSION__ = "0.27.1"
 
 import sys
 import pyfiglet
