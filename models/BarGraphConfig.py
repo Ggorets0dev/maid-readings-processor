@@ -1,3 +1,5 @@
+'''BarGraphConfig location'''
+
 from dataclasses import dataclass, field
 
 @dataclass

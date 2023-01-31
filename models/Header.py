@@ -1,3 +1,5 @@
+'''Header location'''
+
 from datetime import datetime
 from colorama import Fore, Style
 from tools.additional_datetime_utils import is_datetime

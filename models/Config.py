@@ -1,3 +1,5 @@
+'''Config location'''
+
 import os
 import yaml
 

@@ -1,3 +1,5 @@
+'''CountedReading location'''
+
 from datetime import time
 from colorama import Fore, Style
 from models.Reading import Reading

@@ -1,3 +1,5 @@
+'''Reading location'''
+
 class Reading:
     '''Reading that is read from the file'''
 
