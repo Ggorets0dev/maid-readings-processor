@@ -1,3 +1,5 @@
+'''TemplatesSubParser location'''
+
 from argparse import _SubParsersAction, Namespace
 from loguru import logger
 from models.Reading import Reading
@@ -5,13 +7,13 @@ from models.Header import Header
 from models.CountedReading import CountedReading
 from tools.display_utils import ConstantValueOutput
 
-class TemplatesSubParser:
+class TemplateSubParser:
     '''Displaying stitched patterns for headers and readings'''
 
     @staticmethod
     def add_subparser(subparsers : _SubParsersAction) -> _SubParsersAction:
         '''Creating a subparser'''
-        check_subparser = subparsers.add_parser('templates', description='Displaying stitched patterns for headers and readings')
+        check_subparser = subparsers.add_parser('template', description='Displaying stitched patterns for headers and readings')
         check_subparser.add_argument('-he', '--header', action='store_true', help='Header pattern')
         check_subparser.add_argument('-re', '--reading', action='store_true', help='Reading pattern')
         check_subparser.add_argument('-cr', '--calculated-reading', action='store_true', help='Calculated reading pattern')

@@ -1,3 +1,5 @@
+'''CalcSubParser location'''
+
 from copy import copy
 from datetime import datetime
 from argparse import _SubParsersAction, Namespace
@@ -31,7 +33,7 @@ class CalcSubParser:
         calc_subparser.add_argument('-td', '--travel-distance', action='store_true', help='Number of kilometers traveled')
 
         # NOTE - Modes of search and visualization
-        calc_subparser.add_argument('-d', '--date-time', nargs='+', type=str, help='Date and time on which to specify acceleration or voltage interval (specify two for the range) (dd.mm.yyyy or dd.mm.yyyy-hh:mm:ss)')
+        calc_subparser.add_argument('-d', '--date-time', nargs='+', type=str, help='Date and time to filter values (specify two for the interval) (dd.mm.yyyy or dd.mm.yyyy-hh:mm:ss)')
         calc_subparser.add_argument('-a', '--accuracy', nargs=1, type=int, help='Number of decimal places of the displayed values (min: 1, max: 5, default: 2)')
         
         cls.SUBPARSER = calc_subparser
@@ -41,24 +43,15 @@ class CalcSubParser:
     def run_calc(cls, namespace : Namespace) -> None:
         '''Run if Calc subparser was called'''
         resource_path = namespace.input[0].name
+        decimal_places = namespace.accuracy[0] if namespace.accuracy and 0 < namespace.accuracy[0] <= 5 else 2
         config = Config.collect()
 
-        # NOTE - Check if count of --date args is wrong
-        if namespace.date_time and len(namespace.date_time) > 2:
-            logger.error("One or two dates can be passed with the --date-time argument")
-            return
-
-        # NOTE - Filling parameters with values or None if no arguments are used
-        datetime_start = try_parse_datetime(namespace.date_time[0]) if namespace.date_time and len(namespace.date_time) >= 1 else datetime(2000, 1, 1)
-        datetime_end = try_parse_datetime(namespace.date_time[1]) if namespace.date_time and len(namespace.date_time) == 2 else datetime(3000, 1, 1)
-
-        # NOTE - Set calculation accuracy (arg or default=2)
-        if not namespace.accuracy:
-            decimal_places = 2
-        elif namespace.accuracy[0] > 0 and namespace.accuracy[0] <= 5:
-            decimal_places = namespace.accuracy[0]
+        # NOTE - Check the correctness of the passed arguments --date-time
+        if (namespace.date_time and len(namespace.date_time) <= 2) or not namespace.date_time:
+            datetime_start = try_parse_datetime(namespace.date_time[0]) if namespace.date_time and len(namespace.date_time) >= 1 else datetime(2000, 1, 1)
+            datetime_end = try_parse_datetime(namespace.date_time[1], last_day=True) if namespace.date_time and len(namespace.date_time) == 2 else datetime(3000, 1, 1)
         else:
-            logger.error("Used unavailable --accuracy, the value must be from 1 to 5 inclusive")
+            logger.error("One or two dates can be passed with the --date-time argument")
             return
 
         # SECTION - Processing targets: --voltage-interval --all-accelerations --average-acceleration --average-deceleration --average-speed --travel-time --travel-distance
@@ -77,9 +70,9 @@ class CalcSubParser:
             increase = decrease = skip_header = False
             last_header = first_reading = last_reading = buffer_reading = None
 
-            with open(resource_path, 'r', encoding='UTF-8') as file_r:
+            with open(resource_path, 'r', encoding='UTF-8') as file_read:
                 while True:
-                    line = file_r.readline()
+                    line = file_read.readline()
                     
                     if not line:
                         if first_reading and last_reading:
@@ -117,7 +110,6 @@ class CalcSubParser:
                         if not skip_header and last_header:
                             if first_reading:
                                 buffer_reading = CountedReading(Reading(line), last_header.spokes_cnt, last_header.wheel_circ, last_header.max_voltage, last_header.save_delay)
-                                
                                 last_reading = copy(first_reading) if not last_reading else last_reading
                                 
                                 if ((buffer_reading.speed_kmh > last_reading.speed_kmh) and decrease) or ((buffer_reading.speed_kmh < last_reading.speed_kmh) and increase):

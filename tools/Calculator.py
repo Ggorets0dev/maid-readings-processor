@@ -1,3 +1,5 @@
+'''Calculator location'''
+
 import os
 from datetime import datetime
 from copy import copy
@@ -8,11 +10,11 @@ from models.Reading import Reading
 from tools.additional_datetime_utils import is_datetime_in_interval
 
 class Calculator:
-    '''Operations with Headers and Readings from file or memory'''
+    '''Calculation of values using source files'''
 
     @staticmethod
     def get_voltage_interval(file_path : str, datetime_start : datetime, datetime_end : datetime, minimal_voltage_search : int) -> dict[str, float]:
-        '''Find minimal and maximal voltage'''
+        '''Find minimal and maximal voltage (v)'''
         if not os.path.isfile(file_path):
             raise ResourceNotFoundError(file_path)
 
@@ -20,9 +22,9 @@ class Calculator:
         skip_header = False
         last_header = None
 
-        with open(file_path, 'r', encoding='UTF-8') as file_r:
+        with open(file_path, 'r', encoding='UTF-8') as file_read:
             while True:
-                line = file_r.readline()
+                line = file_read.readline()
 
                 if not line:
                     break
@@ -65,9 +67,9 @@ class Calculator:
         increase = decrease = skip_header = False
         last_header = first_reading = last_reading = buffer_reading = None
 
-        with open(file_path, 'r', encoding='UTF-8') as file_r:
+        with open(file_path, 'r', encoding='UTF-8') as file_read:
             while True:
-                line = file_r.readline()
+                line = file_read.readline()
                 
                 if not line:
                     if first_reading and last_reading:
@@ -129,9 +131,9 @@ class Calculator:
         last_header = None
         skip_header = False
 
-        with open(file_path, 'r', encoding='UTF-8') as file_r:
+        with open(file_path, 'r', encoding='UTF-8') as file_read:
             while True:
-                line = file_r.readline()
+                line = file_read.readline()
 
                 if not line:
                     break
@@ -160,9 +162,9 @@ class Calculator:
         current_header = last_reading = None
         skip_header = False
 
-        with open(file_path, 'r', encoding='UTF-8') as file_r:
+        with open(file_path, 'r', encoding='UTF-8') as file_read:
             while True:
-                line = file_r.readline()
+                line = file_read.readline()
 
                 if not line:
                     if last_reading:
@@ -174,8 +176,8 @@ class Calculator:
                         time_sum_sec += (last_reading.millis_passed / 1000)
 
                     current_header = Header(line)
-                    last_reading = None
                     skip_header = not is_datetime_in_interval(current_header.datetime, datetime_start, datetime_end)
+                    last_reading = None
                                 
                 elif Reading.is_reading(line) and not skip_header:
                     last_reading = Reading(line)
@@ -184,7 +186,7 @@ class Calculator:
 
     @staticmethod
     def get_travel_distance(file_path: str, datetime_start : datetime, datetime_end : datetime) -> float:
-        '''Find travel distance'''
+        '''Find travel distance (km)'''
         if not os.path.isfile(file_path):
             raise ResourceNotFoundError(file_path)
 
@@ -192,9 +194,9 @@ class Calculator:
         current_header = current_reading = last_reading = None
         skip_header = False
 
-        with open(file_path, 'r', encoding='UTF-8') as file_r:
+        with open(file_path, 'r', encoding='UTF-8') as file_read:
             while True:
-                line = file_r.readline()
+                line = file_read.readline()
 
                 if not line:
                     if last_reading and current_reading:

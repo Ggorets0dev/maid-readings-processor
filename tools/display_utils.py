@@ -1,4 +1,4 @@
-'''Functions and classes for manipulating the text displayed in the terminal'''
+'''Manipulating with text and values displayed'''
 
 from colorama import Fore, Style
 

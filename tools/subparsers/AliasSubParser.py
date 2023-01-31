@@ -1,3 +1,5 @@
+'''AliasSubParser location'''
+
 import os
 import sys
 import subprocess

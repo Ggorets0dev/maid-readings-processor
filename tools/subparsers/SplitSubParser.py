@@ -1,3 +1,5 @@
+'''SplitSubParser location'''
+
 from argparse import _SubParsersAction, Namespace
 from loguru import logger
 from models.ReadableFile import ReadableFile

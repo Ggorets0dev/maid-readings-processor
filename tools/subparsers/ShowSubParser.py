@@ -1,3 +1,5 @@
+'''ShowSubParser location'''
+
 from argparse import _SubParsersAction, Namespace
 from datetime import datetime
 from loguru import logger
@@ -35,10 +37,10 @@ class ShowSubParser:
         resource_path = namespace.input[0].name
         config = Config.collect()
 
-        # NOTE - Check if count of --date-time args is wrong, fill is normal
+        # NOTE - Check the correctness of the passed arguments --date-time
         if (namespace.date_time and len(namespace.date_time) <= 2) or not namespace.date_time:
             datetime_start = try_parse_datetime(namespace.date_time[0]) if namespace.date_time and len(namespace.date_time) >= 1 else datetime(2000, 1, 1)
-            datetime_end = try_parse_datetime(namespace.date_time[1]) if namespace.date_time and len(namespace.date_time) == 2 else datetime(3000, 1, 1)
+            datetime_end = try_parse_datetime(namespace.date_time[1], last_day=True) if namespace.date_time and len(namespace.date_time) == 2 else datetime(3000, 1, 1)
         else:
             logger.error("One or two dates can be passed with the --date-time argument")
             return

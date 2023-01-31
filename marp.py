@@ -3,12 +3,12 @@
 '''
 Marp - MaidReadingsProcessor (Maid Software's processing utility)
 Written by Ggorets0dev (nikgorets4work@gmail.com)
-Version: 0.26.0
+Version: 0.27.0
 License: MIT
 GitHub: https://github.com/Ggorets0dev/maid-readings-processor
 '''
 
-__VERSION__ = "0.26.0"
+__VERSION__ = "0.27.0"
 
 import sys
 import pyfiglet
@@ -19,9 +19,10 @@ from tools.subparsers.ShowSubParser import ShowSubParser
 from tools.subparsers.CheckSubParser import CheckSubParser
 from tools.subparsers.ReduceSubParser import ReduceSubParser
 from tools.subparsers.CalcSubParser import CalcSubParser
-from tools.subparsers.TemplatesSubParser import TemplatesSubParser
+from tools.subparsers.TemplateSubParser import TemplateSubParser
 from tools.subparsers.SplitSubParser import SplitSubParser
 from tools.subparsers.AliasSubParser import AliasSubParser
+from tools.subparsers.GraphSubParser import GraphSubParser
 
 # NOTE - Colorama initialization
 init()
@@ -52,14 +53,17 @@ if __name__ == "__main__":
     elif namespace.command == 'calc':
         CalcSubParser.run_calc(namespace)
 
-    elif namespace.command == 'templates':
-        TemplatesSubParser.run_templates(namespace)
+    elif namespace.command == 'template':
+        TemplateSubParser.run_templates(namespace)
 
     elif namespace.command == 'split':
         SplitSubParser.run_split(namespace)
 
     elif namespace.command == 'alias':
         AliasSubParser.run_alias(namespace)
+
+    elif namespace.command == 'graph':
+        GraphSubParser.run_graph(namespace)
     # !SECTION
 
     elif not namespace.command:  

@@ -1,3 +1,5 @@
+'''FileParser location'''
+
 import os
 import codecs
 from datetime import datetime
@@ -11,7 +13,7 @@ from models.Config import Config
 from models.exceptions import ReadingWithoutHeaderError, ResourceNotFoundError
 
 class FileParser:
-    '''Parsing class of the file with module readings'''
+    '''Manipulation of files that do not perform calculations'''
 
     @staticmethod
     def show_headers(file_path : str, datetime_start : datetime, datetime_end : datetime, raw=False, to_enumerate=False) -> None:
@@ -241,7 +243,7 @@ class FileParser:
                     line_inx = 1
                     part_inx += 1
                     file_w.close()
-                    file_w = open(new_file_path + str(part_inx) + '.txt', 'w', encoding='UTF-8')
+                    file_w = open(f"{new_file_path}{part_inx}.txt", 'w', encoding='UTF-8')
                     file_w.write(line)
 
                 else:

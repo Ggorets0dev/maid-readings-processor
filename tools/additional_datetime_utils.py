@@ -11,13 +11,14 @@ def is_datetime(datetime_str : str) -> bool:
     except ValueError:
         return False
 
-def try_parse_datetime(datetime_str : str) -> datetime:
+def try_parse_datetime(datetime_str : str, last_day=False) -> datetime:
     '''Try parse str to date using pattern dd.mm.yyyy-hh:mm:ss or dd.mm.yyyy'''
     try:
         datetime_requested = datetime.strptime(datetime_str, '%d.%m.%Y-%H:%M:%S')
     except ValueError:
         try:
             datetime_requested = datetime.strptime(datetime_str, '%d.%m.%Y')
+            datetime_requested = datetime_requested + timedelta(days=1) if last_day else datetime_requested
         except ValueError:
             raise InvalidDateTimePassedError
         else:
