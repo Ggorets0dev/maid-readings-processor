@@ -1,4 +1,4 @@
-# MaidReadingsProcessor (Marp)
+# MaidReadingsProcessor (abbreviated:  Marp)
 
 Console application made with Python 3 for processing records written by [MaidModule](https://github.com/Ggorets0dev/maid-arduino-module) to its portable ROM device.
 
@@ -10,17 +10,15 @@ Console application made with Python 3 for processing records written by [MaidMo
 
 ---
 
-Two starting options are provided:
+> **Note:** Requires Python 3
 
-* Download the source code using an archive or git clone, then install dependencies, **run through Python 3.**
-
-* Download the Windows installer from the Releases page. Run it and then use the executable file. **Does not require Python 3, requires Windows** (Coming later)
-
-> **Warning:** Running the immediate source code gives you the ability to open releases that have not been created as executable. Checks are performed each time before the release executable is loaded, but dynamically loaded libraries may not work correctly.
+At the moment, installation is only possible by **cloning the repository** and **installing dependencies** from requirements.txt.
 
 ## Input file
 
 ---
+
+### **Structure**
 
 Input file is the result of [MaidModule](https://github.com/Ggorets0dev/maid-arduino-module) writing data to the SD card about the speed and voltage of the battery while driving. Consists of:
 
@@ -29,9 +27,17 @@ Input file is the result of [MaidModule](https://github.com/Ggorets0dev/maid-ard
 
 You can see their templates using the **template** command, values and data types are listed there.
 
+### **Sequence**
+
+First the Header is written during initialization, then the Readings are written after it in turn. The cycle starts again when the device is switched off and on.
+
+### **Limits**
+
 Maximum line limit for the input file is **10.5 million** units. This corresponds to about half a year of use with 8 hours of riding and storing values every 500 milliseconds.
 
-> **Note:** On input, each file is checked to make sure that the time sequence is maintained and that the lines match the template. Many operations will be rejected if the checks fail, so it is not recommended to change the files manually
+### **Checks**
+
+On input, each file is checked to make sure that the time sequence is maintained and that the lines match the template. Many operations will be rejected if the checks fail, so it is not recommended to change the files manually.
 
 ## Processing
 
