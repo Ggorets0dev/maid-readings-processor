@@ -174,9 +174,6 @@ class FileParser:
 
                 if not line:
                     break
-                
-                elif line  == '\n' or line  == '':
-                    continue
 
                 elif Header.is_header(line):
                     if not last_header or (last_header and last_header.datetime != Header(line).datetime):
