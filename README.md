@@ -60,11 +60,12 @@ List of available commands for use:
 
 ### **Display parameters**
 
-In some commands, display options can be selected:
+In some commands, displaying or calculation options can be (must be) selected:
 
 | Title | Count | Description | Incorrect input causes an error | Default |
 |:----------|:-----:|:------------|:-------------------------------:|:-------:|
 | date-time | 1 - 2 | Date and time where the values should be (one value for the beam and two for the interval) (ends inclusive) | yes | - |
+| date | 1 - 2 | Date where the values should be (one value for the beam and two for the interval) (ends inclusive) | yes | - |
 | accuracy | 1 | Number of decimal places for calculated values | no | 2 |
 
 ### **Config**
@@ -89,6 +90,7 @@ The following expections may be obtained by the user while interacting with the 
 | ReadingWithoutHeaderError | 4 | An entry (reading) was detected that does not have an attachment to the header |
 | CalledAsModuleError | 5 | Main script is called as a module in another script, not by the user from the command line |
 | InvalidDateTimePassedError | 6 | Invalid format value is passed as an argument to filter date and time |
-| InvalidResourceError | 7 | Resource did not pass validation by time sequence or pattern matching |
+| InvalidDatePassedError | 7 | Invalid format value is passed as an argument to filter date |
+| InvalidResourceError | 8 | Resource did not pass validation by time sequence or pattern matching |
 
 When an error occurs, its name and code are necessarily displayed in the console, so that the user can get information about it from the manual.
