@@ -3,10 +3,10 @@
 import os
 import codecs
 from copy import copy
-from datetime import datetime
+from datetime import datetime, timedelta
 import yaml
 from loguru import logger
-from tools.additional_datetime_utils import is_datetime_in_interval, get_time
+from tools.additional_datetime_utils import is_datetime_in_interval
 from models.Reading import Reading
 from models.Header import Header
 from models.CountedReading import CountedReading
@@ -47,8 +47,8 @@ class FileParser:
         if not os.path.isfile(file_path):
             raise ResourceNotFoundError(file_path)
         
-        found_any = skip_header = False
-        last_header = Header.create_empty()
+        found_any = False
+        last_header = None
         with open(file_path, 'r', encoding='UTF-8') as file_r: 
             while True:
                 line = file_r.readline()
@@ -58,17 +58,24 @@ class FileParser:
                 
                 elif Header.is_header(line):
                     last_header = Header(line)
-                    skip_header = not is_datetime_in_interval(last_header.datetime, datetime_start, datetime_end)
 
-                elif Reading.is_reading(line) and not skip_header:
+                elif Reading.is_reading(line) and last_header:
+                    found_any = True
                     reading = Reading(line)
+                    reading_datetime = last_header.datetime + timedelta(milliseconds=reading.millis_passed)
+                    
+                    if reading_datetime > datetime_end:
+                        break
+
+                    elif reading_datetime < datetime_start:
+                        continue
+
                     if calculated:
                         reading = CountedReading(reading, last_header.spokes_cnt, last_header.wheel_circ, last_header.max_voltage, last_header.save_delay)
-                        reading.time = get_time(last_header.datetime, reading.millis_passed)
+                        reading.time = reading_datetime.time()
                         reading.display(normal_speed_interval=config.normal_speed_interval, normal_voltage_interval=config.normal_voltage_interval, raw=raw, to_enumerate=to_enumerate, decimal_places=3)
                     else:
                         reading.display(raw=raw, to_enumerate=to_enumerate)
-                    found_any = True
 
             if not found_any:
                 logger.info('No readings was found on specified datetime')

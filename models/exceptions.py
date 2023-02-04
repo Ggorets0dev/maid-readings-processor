@@ -25,7 +25,8 @@ class Error(Exception):
         'ReadingWithoutHeaderError': 4,
         'CalledAsModuleError': 5,
         'InvalidDateTimePassedError': 6,
-        'InvalidResourceError': 7
+        'InvalidDatePassedError': 7,
+        'InvalidResourceError': 8
     }
     
     def __init__(self) -> None:
@@ -75,3 +76,9 @@ class InvalidDateTimePassedError(Error):
     def __init__(self) -> None:
         super().__init__()
         logger.error("Transmitted string could not be converted to a date or datetime (requires dd.mm.yyyy or dd.mm.yyyy-hh:mm:ss template)")
+
+class InvalidDatePassedError(Error):
+    '''Failed to parse string to date with pattern dd.mm.yyyyy / dd.mm.yyyy-hh:mm:ss'''
+    def __init__(self) -> None:
+        super().__init__()
+        logger.error("Transmitted string could not be converted to a date (requires dd.mm.yyyy template)")

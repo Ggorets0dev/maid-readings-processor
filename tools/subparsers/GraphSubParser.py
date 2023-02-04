@@ -4,7 +4,7 @@ from argparse import _SubParsersAction, Namespace
 from copy import copy
 import matplotlib.pyplot as plt
 from loguru import logger
-from tools.additional_datetime_utils import try_parse_datetime, is_datetime_in_interval
+from tools.additional_datetime_utils import try_parse_date, is_datetime_in_interval
 from tools.Calculator import Calculator
 from models.ReadableFile import ReadableFile
 from models.Header import Header
@@ -24,7 +24,7 @@ class GraphSubParser:
         graph_subparser.add_argument('-td', '--travel-distance', action='store_true', help='Display the travel distance by day')
 
         # NOTE - Modes of search and visualization
-        graph_subparser.add_argument('-d', '--date-time', nargs=2, type=str, required=True, help='Date and time to filter values (specify two for the interval) (dd.mm.yyyy or dd.mm.yyyy-hh:mm:ss)')
+        graph_subparser.add_argument('-d', '--date', nargs=2, type=str, required=True, help='Date to filter values (specify two for the interval) (dd.mm.yyyy)')
         graph_subparser.add_argument('-a', '--accuracy', nargs=1, type=int, help='Number of decimal places of the displayed values (min: 1, max: 5, default: 2)')
         
         cls.SUBPARSER = graph_subparser
@@ -35,8 +35,8 @@ class GraphSubParser:
         '''Run if graph subparser was called'''
         resource_path = namespace.input[0].name
         decimal_places = namespace.accuracy[0] if namespace.accuracy and 1 < namespace.accuracy[0] <= 5 else 2
-        datetime_start = try_parse_datetime(namespace.date_time[0])
-        datetime_end = try_parse_datetime(namespace.date_time[1], last_day=True)
+        datetime_start = try_parse_date(namespace.date[0])
+        datetime_end = try_parse_date(namespace.date[1], last_day=True)
         bar_graph_config = BarGraphConfig() 
 
         if (datetime_end - datetime_start).days > 30:
@@ -46,8 +46,8 @@ class GraphSubParser:
         if namespace.travel_time:
             travel_times, dates = [], []
 
-            time_sum_sec = 0
-            current_header = last_header = last_reading = None
+            travel_time_sec = 0
+            current_header = last_header = previous_reading = None
             skip_header = False
 
             with open(resource_path, 'r', encoding='UTF-8') as file_read:
@@ -55,11 +55,8 @@ class GraphSubParser:
                     line = file_read.readline()
 
                     if not line:
-                        if last_reading:
-                            time_sum_sec += (last_reading.millis_passed / 1000)
-                        
-                        if time_sum_sec != 0:
-                            travel_times.append(time_sum_sec)
+                        if travel_time_sec != 0:
+                            travel_times.append(travel_time_sec)
                             dates.append(current_header.datetime.strftime('%d %b'))
                         break
 
@@ -67,19 +64,21 @@ class GraphSubParser:
                         last_header = copy(current_header)
                         current_header = Header(line)
 
-                        if last_reading:
-                            time_sum_sec += (last_reading.millis_passed / 1000)
-
-                        if time_sum_sec != 0 and current_header.datetime.date() != last_header.datetime.date():
-                            travel_times.append(time_sum_sec)
+                        if travel_time_sec != 0 and current_header.datetime.date() != last_header.datetime.date():
+                            travel_times.append(travel_time_sec)
                             dates.append(last_header.datetime.strftime('%d %b'))
-                            time_sum_sec = 0
+                            travel_time_sec = 0
 
                         skip_header = not is_datetime_in_interval(current_header.datetime, datetime_start, datetime_end)
-                        last_reading = None
-                                    
-                    elif Reading.is_reading(line) and not skip_header:
-                        last_reading = Reading(line)
+                        current_reading = previous_reading = None
+
+                    elif Reading.is_reading(line) and not skip_header and current_header:
+                        current_reading = CountedReading(Reading(line), current_header.spokes_cnt, current_header.wheel_circ, current_header.max_voltage, current_header.save_delay)
+
+                        if previous_reading:
+                            travel_time_sec += (abs(previous_reading.millis_passed - current_reading.millis_passed) / 1000)
+
+                        previous_reading = copy(current_reading)
 
             if len(travel_times) != 0:
                 bar_graph_config.values_x = dates
@@ -91,12 +90,11 @@ class GraphSubParser:
                 logger.info("No travel time was found for specified conditions")
                 return
 
-
         elif namespace.travel_distance:
             travel_distances, dates = [], []
 
             travel_distance_km = 0
-            current_header = last_header = current_reading = last_reading = None
+            current_header = last_header = current_reading = previous_reading = None
             skip_header = False
 
             with open(resource_path, 'r', encoding='UTF-8') as file_read:
@@ -104,20 +102,14 @@ class GraphSubParser:
                     line = file_read.readline()
 
                     if not line:
-                        if last_reading and current_reading:
-                            travel_distance_km += Calculator.calculate_travel_distance(current_reading.speed_kmh, current_reading.millis_passed, last_reading.millis_passed)
-                        
                         if travel_distance_km != 0:
                             travel_distances.append(travel_distance_km)
-                            dates.append(last_header.datetime.strftime('%d %b'))
+                            dates.append(current_header.datetime.strftime('%d %b'))
                         break
 
                     elif Header.is_header(line):
                         last_header = copy(current_header)
                         current_header = Header(line)
-
-                        if last_reading and current_reading:
-                            travel_distance_km += Calculator.calculate_travel_distance(current_reading.speed_kmh, current_reading.millis_passed, last_reading.millis_passed)
                         
                         if travel_distance_km != 0 and current_header.datetime.date() != last_header.datetime.date():
                             travel_distances.append(travel_distance_km)
@@ -125,15 +117,15 @@ class GraphSubParser:
                             travel_distance_km = 0
 
                         skip_header = not is_datetime_in_interval(current_header.datetime, datetime_start, datetime_end)
-                        current_reading, last_reading = None, CountedReading(Reading.create_empty(), current_header.spokes_cnt, current_header.wheel_circ, current_header.max_voltage, current_header.save_delay)
+                        current_reading = previous_reading = None
 
                     elif Reading.is_reading(line) and not skip_header and current_header:
                         current_reading = CountedReading(Reading(line), current_header.spokes_cnt, current_header.wheel_circ, current_header.max_voltage, current_header.save_delay)
 
-                        if last_reading and current_reading:
-                            travel_distance_km += Calculator.calculate_travel_distance(current_reading.speed_kmh, current_reading.millis_passed, last_reading.millis_passed)
+                        if previous_reading:
+                            travel_distance_km += Calculator.calculate_travel_distance(current_reading.speed_kmh, current_reading.millis_passed, previous_reading.millis_passed)
 
-                        last_reading = copy(current_reading)
+                        previous_reading = copy(current_reading)
 
             if len(travel_distances) != 0:
                 bar_graph_config.values_x = dates
