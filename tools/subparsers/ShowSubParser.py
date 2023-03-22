@@ -12,7 +12,7 @@ class ShowSubParser:
     '''Output files or other data'''
 
     @classmethod
-    def add_subparser(cls, subparsers : _SubParsersAction) -> _SubParsersAction:
+    def add_subparser(cls, subparsers: _SubParsersAction) -> _SubParsersAction:
         '''Creating a subparser'''
         show_subparser = subparsers.add_parser('show', description='Displaying values on the screen without calculating any information')
         show_subparser.add_argument('-i', '--input', nargs=1, type=ReadableFile, required=True, help='Path to the file with readings')
@@ -32,7 +32,7 @@ class ShowSubParser:
         return subparsers
 
     @classmethod
-    def run_show(cls, namespace : Namespace) -> None:
+    def run_show(cls, namespace: Namespace) -> None:
         '''Run if Show subparser was called'''
         resource_path = namespace.input[0].name
         config = Config.collect()

@@ -9,14 +9,14 @@ class ReduceSubParser:
     '''Reducing file (deleting clones)'''
 
     @staticmethod
-    def add_subparser(subparsers : _SubParsersAction) -> _SubParsersAction:
+    def add_subparser(subparsers: _SubParsersAction) -> _SubParsersAction:
         '''Creating a subparser'''
         reduce_subparser = subparsers.add_parser('reduce', description='Reducing incoming data or files against patterns')
         reduce_subparser.add_argument('-i', '--input', nargs=1, type=ReadableFile, required=True, help='Path to the file with readings')
         return subparsers
 
     @staticmethod
-    def run_reduce(namespace : Namespace) -> None:
+    def run_reduce(namespace: Namespace) -> None:
         '''Run if reduce subparser was called'''
         file_path = FileParser.reduce_readings(file_path=namespace.input[0].name)
     

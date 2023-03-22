@@ -9,7 +9,7 @@ class SplitSubParser:
     '''Displaying stitched patterns for headers and readings'''
 
     @classmethod
-    def add_subparser(cls, subparsers : _SubParsersAction) -> _SubParsersAction:
+    def add_subparser(cls, subparsers: _SubParsersAction) -> _SubParsersAction:
         '''Creating a subparser'''
         split_subparser = subparsers.add_parser('split', description='Split file by parts or line count for better performance (check and reducing are disabled)')
         split_subparser.add_argument('-i', '--input', nargs=1, type=ReadableFile, required=True, help='Path to the file with readings')
@@ -22,7 +22,7 @@ class SplitSubParser:
         return subparsers
 
     @classmethod
-    def run_split(cls, namespace : Namespace) -> None:
+    def run_split(cls, namespace: Namespace) -> None:
         '''Run if Split subparser was called'''
         resource_path = namespace.input[0].name
         lines_cnt = FileParser.count_lines(file_path=resource_path)

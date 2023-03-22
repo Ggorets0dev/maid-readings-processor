@@ -3,7 +3,7 @@
 from datetime import datetime, timedelta, time
 from models.exceptions import InvalidDateTimePassedError, InvalidDatePassedError
 
-def is_datetime(datetime_str : str) -> bool:
+def is_datetime(datetime_str: str) -> bool:
     '''Return whether the string can be interpreted as a datetime'''
     try:
         datetime.strptime(datetime_str, '%d.%m.%Y-%H:%M:%S')
@@ -11,7 +11,7 @@ def is_datetime(datetime_str : str) -> bool:
     except ValueError:
         return False
 
-def try_parse_date(datetime_str : str, last_day=False) -> datetime:
+def try_parse_date(datetime_str: str, last_day=False) -> datetime:
     '''Try parse str to date using pattern dd.mm.yyyy'''
     try:
         datetime_requested = datetime.strptime(datetime_str, '%d.%m.%Y')
@@ -20,7 +20,7 @@ def try_parse_date(datetime_str : str, last_day=False) -> datetime:
     except ValueError:
         raise InvalidDatePassedError
 
-def try_parse_datetime(datetime_str : str, last_day=False) -> datetime:
+def try_parse_datetime(datetime_str: str, last_day=False) -> datetime:
     '''Try parse str to datetime or date using pattern dd.mm.yyyy-hh:mm:ss or dd.mm.yyyy'''
     try:
         datetime_requested = datetime.strptime(datetime_str, '%d.%m.%Y-%H:%M:%S')
@@ -32,7 +32,7 @@ def try_parse_datetime(datetime_str : str, last_day=False) -> datetime:
             
     return datetime_requested
 
-def is_datetime_in_interval(datetime_check : datetime, datetime_start : datetime, datetime_end : datetime) -> bool:
+def is_datetime_in_interval(datetime_check: datetime, datetime_start: datetime, datetime_end: datetime) -> bool:
     '''Check if specified date fits in the interval'''
     passed_by_start_date = True
     passed_by_end_date = True
@@ -44,7 +44,7 @@ def is_datetime_in_interval(datetime_check : datetime, datetime_start : datetime
 
     return (passed_by_start_date and passed_by_end_date)
 
-def get_time(header_datetime : datetime, reading_millis_passed : int) -> time:
+def get_time(header_datetime: datetime, reading_millis_passed: int) -> time:
     '''Converting milliseconds to real time based on Header's datetime'''
     new_datetime = header_datetime + timedelta(milliseconds=reading_millis_passed)
     new_time = new_datetime.time()

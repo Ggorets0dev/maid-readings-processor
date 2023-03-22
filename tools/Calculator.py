@@ -12,21 +12,21 @@ class Calculator:
     '''Calculation of values using source files'''
 
     @staticmethod
-    def calculate_acceleration(first_speed_kmh : float, first_time_ms : int, second_speed_kmh : float, second_time_ms : int) -> float:
+    def calculate_acceleration(first_speed_kmh: float, first_time_ms: int, second_speed_kmh: float, second_time_ms: int) -> float:
         '''Calculate acceleration for one pair (m/s^2)'''
         speed_change = (second_speed_kmh - first_speed_kmh) * 1000 / 3600
         time_change = abs(second_time_ms - first_time_ms) / 1000
         return speed_change / time_change
     
     @staticmethod
-    def calculate_travel_distance(first_speed_kmh : float, first_time_ms : float, second_time_ms : float) -> float:
+    def calculate_travel_distance(first_speed_kmh: float, first_time_ms: float, second_time_ms: float) -> float:
         '''Calculate the traveled distance for one pair (km)'''
         time_change_sec = abs(second_time_ms - first_time_ms) / 1000
         travel_distance = (time_change_sec / 60) * (first_speed_kmh / 60)
         return travel_distance
 
     @staticmethod
-    def get_voltage_interval(file_path : str, datetime_start : datetime, datetime_end : datetime, minimal_voltage_search : int) -> dict[str, float]:
+    def get_voltage_interval(file_path: str, datetime_start: datetime, datetime_end: datetime, minimal_voltage_search: int) -> dict[str, float]:
         '''Find minimal and maximal voltage (v)'''
         if not os.path.isfile(file_path):
             raise ResourceNotFoundError(file_path)
@@ -64,7 +64,7 @@ class Calculator:
             return {}
 
     @staticmethod
-    def get_average_acceleration(file_path : str, find_increase : bool, datetime_start : datetime, datetime_end : datetime) -> float:
+    def get_average_acceleration(file_path: str, find_increase: bool, datetime_start: datetime, datetime_end: datetime) -> float:
         '''Find average speed boost or decrease (m/s^2)'''
         if not os.path.isfile(file_path):
             raise ResourceNotFoundError(file_path)
@@ -139,7 +139,7 @@ class Calculator:
             return 0
 
     @staticmethod
-    def get_average_speed(file_path : str, datetime_start : datetime, datetime_end : datetime) -> float:
+    def get_average_speed(file_path: str, datetime_start: datetime, datetime_end: datetime) -> float:
         '''Find average speed (km/h)'''
         if not os.path.isfile(file_path):
             raise ResourceNotFoundError(file_path)
@@ -177,7 +177,7 @@ class Calculator:
             return 0
 
     @staticmethod
-    def get_travel_time(file_path : str, datetime_start : datetime, datetime_end : datetime) -> float:
+    def get_travel_time(file_path: str, datetime_start: datetime, datetime_end: datetime) -> float:
         '''Find travel time (sec)'''
         if not os.path.isfile(file_path):
             raise ResourceNotFoundError(file_path)
@@ -213,7 +213,7 @@ class Calculator:
         return travel_time_sec
 
     @staticmethod
-    def get_travel_distance(file_path: str, datetime_start : datetime, datetime_end : datetime) -> float:
+    def get_travel_distance(file_path: str, datetime_start: datetime, datetime_end: datetime) -> float:
         '''Find travel distance (km)'''
         if not os.path.isfile(file_path):
             raise ResourceNotFoundError(file_path)

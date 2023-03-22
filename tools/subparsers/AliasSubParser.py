@@ -14,7 +14,7 @@ class AliasSubParser:
     '''Processing aliases for commands'''
 
     @classmethod
-    def add_subparser(cls, subparsers : _SubParsersAction) -> _SubParsersAction:
+    def add_subparser(cls, subparsers: _SubParsersAction) -> _SubParsersAction:
         '''Creating a subparser'''
         alias_subparser = subparsers.add_parser('alias', description='Processing aliases for commands, created by user')
         alias_subparser.add_argument('-s', '--show', action='store_true', help='Show all available aliases')
@@ -26,7 +26,7 @@ class AliasSubParser:
         return subparsers
 
     @classmethod
-    def run_alias(cls, namespace : Namespace) -> None:
+    def run_alias(cls, namespace: Namespace) -> None:
         '''Run if Alias subparser was called'''
         ALIASES_PATH = os.path.join(os.path.split(os.path.abspath(__file__))[0], '..', '..', 'aliases.yaml')
         MAIN_SCRIPT_PATH = os.path.join(os.path.split(os.path.abspath(__file__))[0], '..', '..', 'marp.py')

@@ -4,6 +4,7 @@ import os
 import codecs
 from copy import copy
 from datetime import datetime, timedelta
+from typing import Dict, List
 import yaml
 from loguru import logger
 from tools.additional_datetime_utils import is_datetime_in_interval
@@ -17,7 +18,7 @@ class FileParser:
     '''Manipulation of files that do not perform calculations'''
 
     @staticmethod
-    def show_headers(file_path : str, datetime_start : datetime, datetime_end : datetime, raw=False, to_enumerate=False) -> None:
+    def show_headers(file_path: str, datetime_start: datetime, datetime_end: datetime, raw=False, to_enumerate=False) -> None:
         '''Display all headers (ignore duplicates by date)'''
         if not os.path.isfile(file_path):
             raise ResourceNotFoundError(file_path) 
@@ -42,7 +43,7 @@ class FileParser:
                 logger.info('No headers was found on specified datetime')
     
     @staticmethod
-    def show_readings(file_path : str, datetime_start : datetime, datetime_end : datetime, config : Config, calculated=False, raw=False, to_enumerate=False) -> None:
+    def show_readings(file_path: str, datetime_start: datetime, datetime_end: datetime, config: Config, calculated=False, raw=False, to_enumerate=False) -> None:
         '''Display all readings (raw or calculated)'''
         if not os.path.isfile(file_path):
             raise ResourceNotFoundError(file_path)
@@ -81,7 +82,7 @@ class FileParser:
                 logger.info('No readings was found on specified datetime')
 
     @staticmethod
-    def count_lines(file_path : str) -> int:
+    def count_lines(file_path: str) -> int:
         '''Count lines in file'''
         if os.path.isfile(file_path):
             with open(file_path, 'r', encoding='UTF-8') as file_r:
@@ -90,7 +91,7 @@ class FileParser:
             raise ResourceNotFoundError(file_path)
 
     @staticmethod
-    def validate_readings_by_time(file_path : str, log_success=True) -> bool:
+    def validate_readings_by_time(file_path: str, log_success=True) -> bool:
         '''Check whether each next date/time is later than the previous ones'''
         bad_lines_inxs = []
         line_inx = 0
@@ -129,7 +130,7 @@ class FileParser:
                         new_section = False
 
     @staticmethod
-    def validate_readings_by_pattern(file_path : str, log_success=True) -> bool:
+    def validate_readings_by_pattern(file_path: str, log_success=True) -> bool:
         '''Check if all lines of the file correspond to the Header or Reading patterns'''
         bad_lines_inxs = []
         line_inx = 0
@@ -162,7 +163,7 @@ class FileParser:
                     bad_lines_inxs.append(str(line_inx))
 
     @staticmethod
-    def reduce_readings(file_path : str) -> str:
+    def reduce_readings(file_path: str) -> str:
         '''Optimizing the file with readings, deleting unnecessary lines'''
         REDUCED_FILE_NAME = os.path.splitext(file_path)[0] + "_reduced.txt"
         last_header = None
@@ -193,7 +194,7 @@ class FileParser:
         return result_path
 
     @staticmethod
-    def parse_readings(file_path : str) -> dict[Header, list[Reading]]:
+    def parse_readings(file_path: str) -> Dict[Header, List[Reading]]:
         '''Reading values from a file and transferring them to a list'''
         headers_readings = {}
         readings = []
@@ -228,7 +229,7 @@ class FileParser:
         return headers_readings
 
     @staticmethod
-    def split_file(file_path : str, part_size : int) -> int:
+    def split_file(file_path: str, part_size: int) -> int:
         '''Divide file to parts'''
         new_file_path = os.path.splitext(file_path)[0] + "_part_"
         line_inx, part_inx = 0, 1
@@ -268,7 +269,7 @@ class FileParser:
         return part_inx
 
     @staticmethod
-    def is_utf8(file_path : str) -> bool:
+    def is_utf8(file_path: str) -> bool:
         '''Check if file is in UTF-8'''
         try:
             with codecs.open(file_path, encoding='UTF-8', errors='strict') as file_r:
@@ -279,7 +280,7 @@ class FileParser:
             return False
 
     @staticmethod
-    def parse_aliases(file_path : str) -> dict:
+    def parse_aliases(file_path: str) -> Dict:
         '''Collecting aliases for commands'''
         if not os.path.isfile(file_path):
             return { 'exists': False, 'data': [] }
@@ -293,7 +294,7 @@ class FileParser:
             return { 'exists': True, 'data': [] }
     
     @staticmethod
-    def save_aliases(file_path : str, aliases : list[dict]) -> bool:
+    def save_aliases(file_path: str, aliases: List[Dict[str, str]]) -> bool:
         '''Adding new alias for command'''
         aliases = { 'aliases': aliases }
         with open(file_path, 'w', encoding='UTF-8') as file_write:

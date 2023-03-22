@@ -1,6 +1,6 @@
 '''
-Marp - MaidReadingsProcessor (Maid Software's processing utility)
-Written by Ggorets0dev (nikgorets4work@gmail.com)
+Project: Marp - MaidReadingsProcessor (Maid Software's processing utility)
+Developer: Ggorets0dev <nikgorets4work@gmail.com>
 Version: 0.28.0
 License: MIT
 GitHub: https://github.com/Ggorets0dev/maid-readings-processor
@@ -22,7 +22,7 @@ from tools.subparsers.SplitSubParser import SplitSubParser
 from tools.subparsers.AliasSubParser import AliasSubParser
 from tools.subparsers.GraphSubParser import GraphSubParser
 
-# NOTE - Colorama initialization
+# NOTE - Colorama initialization for Windows
 init()
 
 # NOTE - Assigning a more user-friendly exception output 

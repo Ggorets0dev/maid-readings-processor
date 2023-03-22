@@ -11,7 +11,7 @@ class TemplateSubParser:
     '''Displaying stitched patterns for headers and readings'''
 
     @staticmethod
-    def add_subparser(subparsers : _SubParsersAction) -> _SubParsersAction:
+    def add_subparser(subparsers: _SubParsersAction) -> _SubParsersAction:
         '''Creating a subparser'''
         check_subparser = subparsers.add_parser('template', description='Displaying stitched patterns for headers and readings')
         check_subparser.add_argument('-he', '--header', action='store_true', help='Header pattern')
@@ -20,7 +20,7 @@ class TemplateSubParser:
         return subparsers
 
     @staticmethod
-    def run_templates(namespace : Namespace) -> None:
+    def run_templates(namespace: Namespace) -> None:
         '''Run if Templates subparser was called'''
         logger.info("type[value] is used to denote a variable with special type")
 

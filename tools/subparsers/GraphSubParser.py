@@ -2,6 +2,7 @@
 
 from argparse import _SubParsersAction, Namespace
 from copy import copy
+from typing import List
 import matplotlib.pyplot as plt
 from loguru import logger
 from tools.additional_datetime_utils import try_parse_date, is_datetime_in_interval
@@ -16,7 +17,7 @@ class GraphSubParser:
     '''Displaying values from a file with graphs'''
 
     @classmethod
-    def add_subparser(cls, subparsers : _SubParsersAction) -> _SubParsersAction:
+    def add_subparser(cls, subparsers: _SubParsersAction) -> _SubParsersAction:
         '''Creating a subparser'''
         graph_subparser = subparsers.add_parser('graph', description='Displaying values from a file with bar graphs')
         graph_subparser.add_argument('-i', '--input', nargs=1, type=ReadableFile, required=True, help='Path to the file with readings')
@@ -31,7 +32,7 @@ class GraphSubParser:
         return subparsers
 
     @classmethod
-    def run_graph(cls, namespace : Namespace) -> None:
+    def run_graph(cls, namespace: Namespace) -> None:
         '''Run if graph subparser was called'''
         resource_path = namespace.input[0].name
         decimal_places = namespace.accuracy[0] if namespace.accuracy and 1 < namespace.accuracy[0] <= 5 else 2
@@ -154,7 +155,7 @@ class GraphSubParser:
         plt.show()
 
     @staticmethod
-    def draw_values(values_x : list, values_y : list, decimal_places : int):
+    def draw_values(values_x : List, values_y : List, decimal_places : int):
         '''Adding values above the chart columns'''
         for i in range(len(values_x)):
             plt.text(i, round(values_y[i], decimal_places), round(values_y[i], decimal_places), ha = 'center', bbox = dict(facecolor = 'red', alpha =.8))

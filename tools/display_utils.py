@@ -5,18 +5,18 @@ from colorama import Fore, Style
 class Color:
     '''Functionality related to text coloring'''
     @staticmethod
-    def cprint(msg : str, fore="", back="", style="", end='\n') -> None:
+    def cprint(msg: str, fore="", back="", style="", end='\n') -> None:
         '''Color and print text in the terminal'''
         print(Color.colorize(msg, fore, back, style), end=end)
 
     @staticmethod
-    def colorize(msg : str, fore="", back="", style="") -> str:
+    def colorize(msg: str, fore="", back="", style="") -> str:
         '''Color text in the terminal'''
         return f"{fore}{back}{style}{msg}{Style.RESET_ALL}"
 
 class ConstantValueOutput:
     '''Storing information to output a constant value'''
-    def __init__(self, description : str, value : str) -> None:
+    def __init__(self, description: str, value: str) -> None:
         self.description = description
         self.value = value
         
@@ -28,7 +28,7 @@ class ConstantValueOutput:
 
 class CalculatedValueOutput(ConstantValueOutput):
     '''Storing information for the output of a single calculated value'''
-    def __init__(self, description : str, value : str, units_of_measure : str) -> None:
+    def __init__(self, description: str, value: str, units_of_measure: str) -> None:
         super().__init__(description, value)
         self.units_of_measure = units_of_measure
     

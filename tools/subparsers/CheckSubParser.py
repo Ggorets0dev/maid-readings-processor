@@ -7,7 +7,7 @@ class CheckSubParser:
     '''Checking files or other input data'''
 
     @staticmethod
-    def add_subparser(subparsers : _SubParsersAction) -> _SubParsersAction:
+    def add_subparser(subparsers: _SubParsersAction) -> _SubParsersAction:
         '''Creating a subparser'''
         check_subparser = subparsers.add_parser('check', description='Checking incoming data or files against patterns')
         check_subparser.add_argument('-i', '--input', nargs=1, type=FileType(encoding='UTF-8'), required=True, help='Path to the file with readings')
@@ -16,7 +16,7 @@ class CheckSubParser:
         return subparsers
 
     @staticmethod
-    def run_check(namespace : Namespace) -> None:
+    def run_check(namespace: Namespace) -> None:
         '''Run if Check subparser was called'''
         file_path = namespace.input[0].name
 

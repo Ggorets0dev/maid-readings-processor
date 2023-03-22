@@ -18,7 +18,7 @@ class CalcSubParser:
     '''Calculations based on headers and readings'''
 
     @classmethod
-    def add_subparser(cls, subparsers : _SubParsersAction) -> _SubParsersAction:
+    def add_subparser(cls, subparsers: _SubParsersAction) -> _SubParsersAction:
         '''Creating a subparser'''
         calc_subparser = subparsers.add_parser('calc', description='Checking incoming data or files against patterns')
         calc_subparser.add_argument('-i', '--input', nargs=1, type=ReadableFile, required=True, help='Path to the file with readings')
@@ -40,7 +40,7 @@ class CalcSubParser:
         return subparsers
 
     @classmethod
-    def run_calc(cls, namespace : Namespace) -> None:
+    def run_calc(cls, namespace: Namespace) -> None:
         '''Run if Calc subparser was called'''
         resource_path = namespace.input[0].name
         decimal_places = namespace.accuracy[0] if namespace.accuracy and 0 < namespace.accuracy[0] <= 5 else 2
@@ -190,7 +190,7 @@ class CalcSubParser:
         # !SECTION
 
     @staticmethod
-    def show_acceleration(first_reading : CountedReading, last_reading : CountedReading, current_header : Header, decimal_places : int) -> None:
+    def show_acceleration(first_reading: CountedReading, last_reading: CountedReading, current_header: Header, decimal_places: int) -> None:
         '''Output of acceleration between two CountedReading'''
         acceleration = Calculator.calculate_acceleration(first_reading.speed_kmh, first_reading.millis_passed, last_reading.speed_kmh, last_reading.millis_passed)
         first_reading.time = get_time(current_header.datetime, first_reading.millis_passed)
