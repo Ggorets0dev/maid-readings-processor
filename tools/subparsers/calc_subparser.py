@@ -5,12 +5,12 @@ from datetime import datetime, timedelta
 from argparse import _SubParsersAction, Namespace
 from colorama import Fore, Style
 from loguru import logger
-from models.ReadableFile import ReadableFile
-from models.Header import Header
-from models.Reading import Reading
-from models.Config import Config
-from models.CountedReading import CountedReading
-from tools.Calculator import Calculator
+from models.readable_file import ReadableFile
+from models.header import Header
+from models.reading import Reading
+from models.config import Config
+from models.counted_reading import CountedReading
+from tools.calculator import Calculator
 from tools.additional_datetime_utils import try_parse_datetime, get_time
 from tools.display_utils import Color, CalculatedValueOutput
 

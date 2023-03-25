@@ -1,7 +1,7 @@
 '''CheckSubParser location'''
 
 from argparse import _SubParsersAction, Namespace, FileType
-from tools.FileParser import FileParser
+from tools.file_parser import FileParser
 
 class CheckSubParser:
     '''Checking files or other input data'''

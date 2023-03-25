@@ -4,6 +4,7 @@ from datetime import datetime
 from colorama import Fore, Style
 from tools.additional_datetime_utils import is_datetime
 from tools.display_utils import Color
+
 class Header:
     '''Header that is read from the file'''
 

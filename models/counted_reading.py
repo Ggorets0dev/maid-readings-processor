@@ -2,7 +2,7 @@
 
 from datetime import time
 from colorama import Fore, Style
-from models.Reading import Reading
+from models.reading import Reading
 from tools.display_utils import Color
 
 class CountedReading:

@@ -2,8 +2,8 @@
 
 from argparse import _SubParsersAction, Namespace
 from loguru import logger
-from models.ReadableFile import ReadableFile
-from tools.FileParser import FileParser
+from models.readable_file import ReadableFile
+from tools.file_parser import FileParser
 
 class SplitSubParser:
     '''Displaying stitched patterns for headers and readings'''

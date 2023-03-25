@@ -8,10 +8,10 @@ from typing import Dict, List
 import yaml
 from loguru import logger
 from tools.additional_datetime_utils import is_datetime_in_interval
-from models.Reading import Reading
-from models.Header import Header
-from models.CountedReading import CountedReading
-from models.Config import Config
+from models.reading import Reading
+from models.header import Header
+from models.counted_reading import CountedReading
+from models.config import Config
 from models.exceptions import ReadingWithoutHeaderError, ResourceNotFoundError
 
 class FileParser:

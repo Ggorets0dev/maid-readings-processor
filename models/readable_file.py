@@ -4,7 +4,8 @@ import os
 import time
 from loguru import logger
 from models.exceptions import ResourceSizeExceededError, ResourceNotFoundError, ResourceWrongEncodingError, InvalidResourceError
-from tools.FileParser import FileParser
+from tools.file_parser import FileParser
+
 class ReadableFile:
     '''File which can be handled by functions'''
     MAXIMAL_FILE_LENGTH = 10_500_000

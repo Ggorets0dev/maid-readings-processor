@@ -4,9 +4,9 @@ import os
 from datetime import datetime, timedelta
 from copy import copy
 from models.exceptions import ResourceNotFoundError
-from models.Header import Header
-from models.CountedReading import CountedReading
-from models.Reading import Reading
+from models.header import Header
+from models.counted_reading import CountedReading
+from models.reading import Reading
 
 class Calculator:
     '''Calculation of values using source files'''

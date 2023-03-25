@@ -1,26 +1,26 @@
 '''
 Project: Marp - MaidReadingsProcessor (Maid Software's processing utility)
 Developer: Ggorets0dev <nikgorets4work@gmail.com>
-Version: 0.28.0
-License: MIT
+Version: 0.28.1
+License: Apache License 2.0
 GitHub: https://github.com/Ggorets0dev/maid-readings-processor
 '''
 
-__VERSION__ = "0.28.0"
+__VERSION__ = "0.28.1"
 
 import sys
 import pyfiglet
 from colorama import init
 from models.exceptions import CalledAsModuleError, user_exception_hook
-from tools.CommandParser import CommandParser
-from tools.subparsers.ShowSubParser import ShowSubParser
-from tools.subparsers.CheckSubParser import CheckSubParser
-from tools.subparsers.ReduceSubParser import ReduceSubParser
-from tools.subparsers.CalcSubParser import CalcSubParser
-from tools.subparsers.TemplateSubParser import TemplateSubParser
-from tools.subparsers.SplitSubParser import SplitSubParser
-from tools.subparsers.AliasSubParser import AliasSubParser
-from tools.subparsers.GraphSubParser import GraphSubParser
+from tools.command_parser import CommandParser
+from tools.subparsers.show_subparser import ShowSubParser
+from tools.subparsers.check_subparser import CheckSubParser
+from tools.subparsers.reduce_subparser import ReduceSubParser
+from tools.subparsers.calc_subparser import CalcSubParser
+from tools.subparsers.template_subparser import TemplateSubParser
+from tools.subparsers.split_subparser import SplitSubParser
+from tools.subparsers.alias_subparser import AliasSubParser
+from tools.subparsers.graph_subparser import GraphSubParser
 
 # NOTE - Colorama initialization for Windows
 init()
@@ -35,7 +35,7 @@ if __name__ == "__main__":
     if namespace.version:
         print(pyfiglet.figlet_format('marp', font = 'ogre'), end='')
         print(f"Version: {__VERSION__}")
-        print("Developer: Ggorets0dev (nikgorets4work@gmail.com)")
+        print("Developer: Ggorets0dev <nikgorets4work@gmail.com>")
         print("GitHub: https://github.com/Ggorets0dev/maid-readings-processor")
 
     # SECTION - Processing commands from subparsers

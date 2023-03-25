@@ -6,12 +6,12 @@ from typing import List
 import matplotlib.pyplot as plt
 from loguru import logger
 from tools.additional_datetime_utils import try_parse_date, is_datetime_in_interval
-from tools.Calculator import Calculator
-from models.ReadableFile import ReadableFile
-from models.Header import Header
-from models.Reading import Reading
-from models.CountedReading import CountedReading
-from models.BarGraphConfig import BarGraphConfig
+from tools.calculator import Calculator
+from models.readable_file import ReadableFile
+from models.header import Header
+from models.reading import Reading
+from models.counted_reading import CountedReading
+from models.bar_graph_config import BarGraphConfig
 
 class GraphSubParser:
     '''Displaying values from a file with graphs'''

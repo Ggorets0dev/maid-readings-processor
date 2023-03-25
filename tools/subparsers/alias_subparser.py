@@ -7,7 +7,7 @@ from copy import copy
 from argparse import _SubParsersAction, Namespace
 from colorama import Fore, Style
 from loguru import logger
-from tools.FileParser import FileParser
+from tools.file_parser import FileParser
 from tools.display_utils import ConstantValueOutput, Color
 
 class AliasSubParser:

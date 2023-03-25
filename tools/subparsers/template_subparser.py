@@ -2,9 +2,9 @@
 
 from argparse import _SubParsersAction, Namespace
 from loguru import logger
-from models.Reading import Reading
-from models.Header import Header
-from models.CountedReading import CountedReading
+from models.reading import Reading
+from models.header import Header
+from models.counted_reading import CountedReading
 from tools.display_utils import ConstantValueOutput
 
 class TemplateSubParser:

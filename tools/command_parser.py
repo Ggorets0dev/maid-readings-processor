@@ -1,14 +1,14 @@
 '''Main CommandParser location'''
 
 from argparse import ArgumentParser
-from tools.subparsers.ShowSubParser import ShowSubParser
-from tools.subparsers.CheckSubParser import CheckSubParser
-from tools.subparsers.ReduceSubParser import ReduceSubParser
-from tools.subparsers.CalcSubParser import CalcSubParser
-from tools.subparsers.TemplateSubParser import TemplateSubParser
-from tools.subparsers.SplitSubParser import SplitSubParser
-from tools.subparsers.AliasSubParser import AliasSubParser
-from tools.subparsers.GraphSubParser import GraphSubParser
+from tools.subparsers.show_subparser import ShowSubParser
+from tools.subparsers.check_subparser import CheckSubParser
+from tools.subparsers.reduce_subparser import ReduceSubParser
+from tools.subparsers.calc_subparser import CalcSubParser
+from tools.subparsers.template_subparser import TemplateSubParser
+from tools.subparsers.split_subparser import SplitSubParser
+from tools.subparsers.alias_subparser import AliasSubParser
+from tools.subparsers.graph_subparser import GraphSubParser
 
 class CommandParser:
     '''Processing command line arguments'''

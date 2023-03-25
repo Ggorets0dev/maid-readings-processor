@@ -3,10 +3,10 @@
 from argparse import _SubParsersAction, Namespace
 from datetime import datetime
 from loguru import logger
-from tools.FileParser import FileParser
+from tools.file_parser import FileParser
 from tools.additional_datetime_utils import try_parse_datetime
-from models.Config import Config
-from models.ReadableFile import ReadableFile
+from models.config import Config
+from models.readable_file import ReadableFile
 
 class ShowSubParser:
     '''Output files or other data'''
