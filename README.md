@@ -1,4 +1,4 @@
-# MaidReadingsProcessor (abbreviated:  Marp)
+# MaidReadingsProcessor (Marp)
 
 Console application made with Python 3 for processing records written by [MaidModule](https://github.com/Ggorets0dev/maid-arduino-module) to its portable ROM device.
 
@@ -8,15 +8,11 @@ Console application made with Python 3 for processing records written by [MaidMo
 
 ## Installation
 
----
-
-> **Note:** Requires Python 3
+> **Note:** Requires [Python 3](https://www.python.org)
 
 At the moment, installation is only possible by **cloning the repository** and **installing dependencies** from requirements.txt.
 
 ## Input file
-
----
 
 ### **Structure**
 
@@ -40,8 +36,6 @@ Maximum line limit for the input file is **10.5 million** units. This correspond
 On input, each file is checked to make sure that the time sequence is maintained and that the lines match the template. Many operations will be rejected if the checks fail, so it is not recommended to change the files manually.
 
 ## Processing
-
----
 
 ### **Commands**
 
